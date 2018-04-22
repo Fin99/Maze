@@ -1,6 +1,11 @@
-package com.fin.game;
+package com.fin.game.maze;
 
-public class InvisibleMazeWithKey extends MazeWithKey implements OnlineMaze {
+import com.fin.game.player.Direction;
+import com.fin.game.player.LocationList;
+import com.fin.game.player.Player;
+import com.fin.game.cover.Wall;
+
+public class InvisibleMazeWithKey extends MazeImpl implements OnlineMaze {
     // 1 нет
     // 2 влево
     // 3 вверх
@@ -11,6 +16,7 @@ public class InvisibleMazeWithKey extends MazeWithKey implements OnlineMaze {
     private int idBullet;
     private Player monster;
     private Player gun;
+    private Player key;
 
     public InvisibleMazeWithKey() {
         players = new LocationList();
@@ -25,14 +31,15 @@ public class InvisibleMazeWithKey extends MazeWithKey implements OnlineMaze {
     @Override
     public void setSize(int size) {
         super.setSize(size);
-        monster = new Player('☻');
+        monster = new Player('☻', size);
         monster.setPlayerX(size - 1);
         monster.setPlayerY(size - 1);
-        keyX = size / 2;
-        keyY = size / 2;
-        gun = new Player('◄');
-        gun.setPlayerX(keyX + 1);
-        gun.setPlayerY(keyY - 1);
+        key = new Player('¶', size);
+        key.setPlayerX(size / 2);
+        key.setPlayerY(size / 2);
+        gun = new Player('◄', size);
+        gun.setPlayerX(key.getPlayerX() + 1);
+        gun.setPlayerY(key.getPlayerY() - 1);
     }
 
     @Override
@@ -52,43 +59,39 @@ public class InvisibleMazeWithKey extends MazeWithKey implements OnlineMaze {
     @Override
     public boolean canIGo(int dx, int dy) {
         if (player.getPlayerX() + dx < size && player.getPlayerX() + dx >= 0 && player.getPlayerY() + dy < size && player.getPlayerY() + dy >= 0) {
+            player.getCover().addWall(player.getPlayerX(), player.getPlayerY(), Wall.MIDDLE);
             if (dx != 0) {
                 if (dx == 1) {
-                    if (player.checked[player.getPlayerX()][player.getPlayerY()] % 7 != 0)
-                        player.checked[player.getPlayerX()][player.getPlayerY()] *= 7;
-                    if (player.checked[player.getPlayerX() + 1][player.getPlayerY()] % 2 != 0)
-                        player.checked[player.getPlayerX() + 1][player.getPlayerY()] *= 2;
+                    player.getCover().addWall(player.getPlayerX(), player.getPlayerY(), Wall.RIGHT);
+                    player.getCover().addWall(player.getPlayerX() + 1, player.getPlayerY(), Wall.LEFT);
                     if ((maze[player.getPlayerX() + dx][player.getPlayerY()] & 8) == 8) {
+                        player.getCover().addWall(player.getPlayerX() + 1, player.getPlayerY(), Wall.MIDDLE);
                         player.setPlayerX(player.getPlayerX() + dx);
                         return true;
                     }
                 } else {
-                    if (player.checked[player.getPlayerX()][player.getPlayerY()] % 2 != 0)
-                        player.checked[player.getPlayerX()][player.getPlayerY()] *= 2;
-                    if (player.checked[player.getPlayerX() - 1][player.getPlayerY()] % 7 != 0)
-                        player.checked[player.getPlayerX() - 1][player.getPlayerY()] *= 7;
+                    player.getCover().addWall(player.getPlayerX(), player.getPlayerY(), Wall.LEFT);
+                    player.getCover().addWall(player.getPlayerX() - 1, player.getPlayerY(), Wall.RIGHT);
                     if ((maze[player.getPlayerX()][player.getPlayerY()] & 8) == 8) {
+                        player.getCover().addWall(player.getPlayerX() - 1, player.getPlayerY(), Wall.MIDDLE);
                         player.setPlayerX(player.getPlayerX() + dx);
                         return true;
                     }
                 }
             } else if (dy != 0) {
                 if (dy == 1) {
-                    if (player.checked[player.getPlayerX()][player.getPlayerY()] % 5 != 0)
-                        player.checked[player.getPlayerX()][player.getPlayerY()] *= 5;
-                    if (player.checked[player.getPlayerX()][player.getPlayerY() + 1] % 3 != 0)
-                        player.checked[player.getPlayerX()][player.getPlayerY() + 1] *= 3;
-                    //вниз | вверх
+                    player.getCover().addWall(player.getPlayerX(), player.getPlayerY(), Wall.DOWN);
+                    player.getCover().addWall(player.getPlayerX(), player.getPlayerY() + 1, Wall.UP);
                     if ((maze[player.getPlayerX()][player.getPlayerY() + dy] & 1) == 1) {
+                        player.getCover().addWall(player.getPlayerX(), player.getPlayerY() + 1, Wall.MIDDLE);
                         player.setPlayerY(player.getPlayerY() + dy);
                         return true;
                     }
                 } else {
-                    if (player.checked[player.getPlayerX()][player.getPlayerY()] % 3 != 0)
-                        player.checked[player.getPlayerX()][player.getPlayerY()] *= 3;
-                    if (player.checked[player.getPlayerX()][player.getPlayerY() - 1] % 5 != 0)
-                        player.checked[player.getPlayerX()][player.getPlayerY() - 1] *= 5;
+                    player.getCover().addWall(player.getPlayerX(), player.getPlayerY(), Wall.UP);
+                    player.getCover().addWall(player.getPlayerX(), player.getPlayerY() - 1, Wall.DOWN);
                     if ((maze[player.getPlayerX()][player.getPlayerY()] & 1) == 1) {
+                        player.getCover().addWall(player.getPlayerX(), player.getPlayerY() - 1, Wall.MIDDLE);
                         player.setPlayerY(player.getPlayerY() + dy);
                         return true;
                     }
@@ -102,7 +105,7 @@ public class InvisibleMazeWithKey extends MazeWithKey implements OnlineMaze {
     public String go(String a, int idPlayer) {
         player = players.getPersonByID(idPlayer);
         StringBuilder out = new StringBuilder(super.go(a));
-        if (keyX == -1 && keyY == -1 && monster.getPlayerX() == -1 && monster.getPlayerY() == -1) {
+        if (player.isKey() && monster.getPlayerX() == -1 && monster.getPlayerY() == -1 && player.getPlayerX() == size - 1 && player.getPlayerY() == size - 1) {
             String[] elements = out.toString().split("\n");
             elements[out.toString().split("\n").length - 1] = "Вы выиграли";
             out = new StringBuilder();
@@ -117,13 +120,24 @@ public class InvisibleMazeWithKey extends MazeWithKey implements OnlineMaze {
     @Override
     String display() {
 
-        if (keyY == player.getPlayerY() && keyX == player.getPlayerX()) {
-            keyY = -1;
-            keyX = -1;
+        if (key.getPlayerY() == player.getPlayerY() && key.getPlayerX() == player.getPlayerX()) {
+            key.setPlayerY(-1);
+            key.setPlayerX(-1);
+            player.setKey(true);
         }
         if (monster.getPlayerY() == player.getPlayerY() && monster.getPlayerX() == player.getPlayerX() && !player.getIcon().equals('-') && !player.getIcon().equals('|')) {
             player.setPlayerX(0);
             player.setPlayerY(size - 1);
+            if (player.isKey()) {
+                player.setKey(false);
+                key.setPlayerX(size / 2);
+                key.setPlayerY(size / 2);
+            }
+            if (player.isGun()) {
+                player.setGun(false);
+                gun.setPlayerX(size / 2 + 1);
+                gun.setPlayerY(size / 2 + 1);
+            }
         }
         if (gun.getPlayerY() == player.getPlayerY() && gun.getPlayerX() == player.getPlayerX()) {
             gun.setPlayerX(-1);
@@ -136,7 +150,7 @@ public class InvisibleMazeWithKey extends MazeWithKey implements OnlineMaze {
             for (int j = 0; j < size; j++) {
                 if (i == 0) {
                     out.append("+---");
-                } else if (Math.floorMod(player.checked[j][i], 3) == 0) {
+                } else if (player.getCover().containsWall(j, i, Wall.UP)) {
                     out.append((maze[j][i] & 1) == 0 ? "----" : "    ");
                 } else if (j == 0) {
                     out.append("    ");
@@ -150,38 +164,20 @@ public class InvisibleMazeWithKey extends MazeWithKey implements OnlineMaze {
             for (int j = 0; j < size; j++) {
                 Character icon;
                 if ((icon = players.containsPerson(j, i)) != null) {
-                    if (player.checked[j][i] % 2 == 0 || j == 0) {
+                    if (player.getCover().containsWall(j, i, Wall.LEFT) || j == 0) {
                         out.append((maze[j][i] & 8) == 0 ? "| " + icon + " " : "  " + icon + " ");
                     } else {
                         out.append("  ").append(icon).append(" ");
                     }
-                } else if (j == keyX && i == keyY) {
-                    if (player.checked[j][i] % 2 == 0) {
-                        out.append((maze[j][i] & 8) == 0 ? "| ¶ " : "  ¶ ");
-                    } else if (player.checked[j][i] != 1) {
-                        out.append("  ¶ ");
-                    } else {
-                        out.append("    ");
-                    }
+                } else if (j == key.getPlayerX() && i == key.getPlayerY()) {
+                    out.append(drawPlayer(player, key, j, i));
                 } else if (j == monster.getPlayerX() && i == monster.getPlayerY()) {
-                    if (player.checked[j][i] % 2 == 0) {
-                        out.append((maze[j][i] & 8) == 0 ? "| " + monster.getIcon() + " " : "  " + monster.getIcon() + " ");
-                    } else if (player.checked[j][i] != 1) {
-                        out.append("  ").append(monster.getIcon()).append(" ");
-                    } else {
-                        out.append("    ");
-                    }
+                    out.append(drawPlayer(player, monster, j, i));
                 } else if (j == gun.getPlayerX() && i == gun.getPlayerY()) {
-                    if (player.checked[j][i] % 2 == 0) {
-                        out.append((maze[j][i] & 8) == 0 ? "| " + gun.getIcon() + " " : "  " + gun.getIcon() + " ");
-                    } else if (player.checked[j][i] != 1) {
-                        out.append("  ").append(gun.getIcon()).append(" ");
-                    } else {
-                        out.append("    ");
-                    }
+                    out.append(drawPlayer(player, gun, j, i));
                 } else if (j == 0) {
                     out.append("|   ");
-                } else if (player.checked[j][i] % 2 == 0) {
+                } else if (player.getCover().containsWall(j, i, Wall.LEFT)) {
                     out.append((maze[j][i] & 8) == 0 ? "|   " : "    ");
                 } else {
                     out.append("    ");
@@ -189,8 +185,20 @@ public class InvisibleMazeWithKey extends MazeWithKey implements OnlineMaze {
             }
             out.append("|");
             if (i == 0) out.append(" Ваш рюкзак:");
-            if (i == 1 && player.isGun()) out.append(" Пистолет");
-            if (i == 4 && keyY==-1 && keyX==-1) out.append(" Ключ найден!");
+            if (i == 1) {
+                if (player.isGun()) {
+                    out.append(" Пистолет");
+                } else {
+                    out.append("         ");
+                }
+            }
+            if (i == 2) {
+                if (player.isKey()) {
+                    out.append(" Ключ");
+                } else {
+                    out.append("     ");
+                }
+            }
             out.append("\n");
         }
         // draw the bottom line
@@ -201,13 +209,23 @@ public class InvisibleMazeWithKey extends MazeWithKey implements OnlineMaze {
         return out.toString();
     }
 
-    @Override
-    public int addPlayer(int x, int y, char icon) {
-        return players.addPerson(x, y, icon);
+    private String drawPlayer(Player player, Player subject, int j, int i) {
+        StringBuilder out = new StringBuilder();
+        if (player.getCover().containsWall(j, i, Wall.MIDDLE) && player.getCover().containsWall(j, i, Wall.LEFT)) {
+            out.append((maze[j][i] & 8) == 0 ? "| " + subject.getIcon() + " " : "  " + subject.getIcon() + " ");
+        } else if (player.getCover().containsWall(j, i, Wall.LEFT)) {
+            out.append((maze[j][i] & 8) == 0 ? "|   " : "    ");
+        } else if (player.getCover().containsWall(j, i, Wall.MIDDLE)) {
+            out.append("  ").append(subject.getIcon()).append(" ");
+        } else {
+            out.append("    ");
+        }
+        return out.toString();
     }
 
-    public static void main(String[] args) {
-        System.out.println("◄");
+    @Override
+    public int addPlayer(int x, int y, char icon) {
+        return players.addPerson(x, y, icon, size);
     }
 
     @Override
@@ -215,7 +233,7 @@ public class InvisibleMazeWithKey extends MazeWithKey implements OnlineMaze {
         player = players.getPersonByID(idPlayer);
         if (player.isGun() && idBullet == 0) {
             player.setGun(false);
-            idBullet = players.addPerson(player.getPlayerX(), player.getPlayerY(), direction.getIcon());
+            idBullet = players.addPerson(player.getPlayerX(), player.getPlayerY(), direction.getIcon(), size);
             Player bullet = players.getPersonByID(idBullet);
             new Thread(() -> {
                 boolean stop = false;

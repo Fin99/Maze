@@ -1,4 +1,4 @@
-package com.fin.game;
+package com.fin.game.player;
 
 public enum Direction {
     Up,
@@ -6,7 +6,7 @@ public enum Direction {
     Right,
     Left;
 
-    char getIcon() {
+    public char getIcon() {
         switch (this) {
             case Up:
             case Down:
@@ -18,7 +18,7 @@ public enum Direction {
         return 0;
     }
 
-    String getDir() {
+    public String getDir() {
         switch (this) {
             case Up:
                 return "w";

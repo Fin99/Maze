@@ -1,4 +1,6 @@
-package com.fin.game;
+package com.fin.game.maze;
+
+import com.fin.game.player.Direction;
 
 public interface OnlineMaze extends Maze, ManyPlayer {
     String go(String a, int idPlayer);

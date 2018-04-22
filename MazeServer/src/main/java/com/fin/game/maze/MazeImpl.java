@@ -1,4 +1,4 @@
-package com.fin.game;
+package com.fin.game.maze;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -173,15 +173,6 @@ public class MazeImpl implements Maze {
             this.bit = bit;
             this.dx = dx;
             this.dy = dy;
-        }
-    }
-
-    public static void main(String[] args) {
-        MazeImpl maze = new MazeImpl();
-        maze.setSize(15);
-        System.out.println(maze.display());
-        for (int i = 0; i < 225; i++) {
-            System.out.print(maze.maze[i % 15][i / 15] + ", ");
         }
     }
 }

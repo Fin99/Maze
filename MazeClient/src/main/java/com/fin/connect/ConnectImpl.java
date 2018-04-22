@@ -24,13 +24,20 @@ public class ConnectImpl implements Connect {
     @Override
     public Object sendRequest(Serializable... serializables) {
         try {
+
             for (Serializable s : serializables) {
+                if (server.isClosed()) throw new IOException();
                 os.write(writeToByteArray(s));
             }
             while (true) {
+                byte ready;
+                if ((ready = is.readByte())==-1) throw new IOException();
                 if (is.available() > 0) {
-                    byte[] response = new byte[is.available()];
-                    is.read(response);
+                    byte[] buffer = new byte[is.available()];
+                    is.read(buffer);
+                    byte[] response = new byte[buffer.length+1];
+                    response[0] = ready;
+                    System.arraycopy(buffer, 0,response,1, buffer.length);
                     return readFromByteArray(response);
                 }
             }

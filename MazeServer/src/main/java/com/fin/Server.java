@@ -1,7 +1,7 @@
 package com.fin;
 
-import com.fin.game.InvisibleMazeWithKey;
-import com.fin.game.OnlineMaze;
+import com.fin.game.maze.InvisibleMazeWithKey;
+import com.fin.game.maze.OnlineMaze;
 
 import java.io.*;
 import java.net.ServerSocket;

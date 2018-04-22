@@ -29,6 +29,7 @@ public class Player {
     private static void initial() throws IOException {
         //ask the player to specify the server port
         System.out.println("Добро пожаловать в игру Maze!");
+        System.out.println("Пожалуйста, разверните окно терминала на весь экран.");
         System.out.print("Укажите порт на котором расположен сервер: ");
         Connect serverConnect = new ConnectImpl(selectPort());
         console = new GameConsoleImpl(serverConnect);

@@ -1,4 +1,4 @@
-package com.fin.game;
+package com.fin.game.maze;
 
 public interface Maze {
     String start();

@@ -1,6 +1,6 @@
 package com.fin;
 
-import com.fin.game.Direction;
+import com.fin.game.player.Direction;
 
 import java.io.*;
 import java.net.Socket;
@@ -36,13 +36,13 @@ public class ClientThread extends Thread {
                     String request = (String) readFromByteArray(string);
                     //when you click the arrows sent extra information ignore it
                     if (isNoise(request)) {
+                        if (idPlayer == Server.movePlayer.get() && Server.countClient.get()!=0) message = "Ваш ход!";
                         response = Server.maze.show(message, idPlayer);
                     } else {
                         //check this if the player has to move
                         if (idPlayer == Server.movePlayer.get()) {
                             //making a move
                             response = move(request);
-                            System.out.println("Сейчас ход игрока " + Server.movePlayer.get());
                         } else {
                             message = "Сейчас не ваш ход";
                             //form the response
