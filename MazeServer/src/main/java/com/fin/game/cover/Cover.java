@@ -1,11 +1,12 @@
 package com.fin.game.cover;
 
+import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
 
-public class Cover {
-    Set<Field> cov;
-    int size;
+public class Cover implements Serializable {
+    private Set<Field> cov;
+    private int size;
 
     public Cover(int size) {
         this.size = size;
@@ -17,16 +18,25 @@ public class Cover {
         }
     }
 
-    public void addWall(int x, int y, Wall wall) {
+    public Cover(Set<Field> cov){
+        this.cov = cov;
+        size = (int) Math.sqrt(cov.size());
+    }
+
+    public void addWall(int x, int y, Direction wall) {
         for (Field field : cov) {
             if (field.getX() == x && field.getY() == y) field.addWalls(wall);
         }
     }
 
-    public boolean containsWall(int x, int y, Wall wall) {
+    public boolean containsWall(int x, int y, Direction wall) {
         for (Field field : cov) {
             if (field.getX() == x && field.getY() == y && field.containsWall(wall)) return true;
         }
         return false;
+    }
+
+    public Set<Field> getCov() {
+        return cov;
     }
 }

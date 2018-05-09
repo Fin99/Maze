@@ -1,10 +1,11 @@
 package com.fin.game.cover;
 
+import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
 
-public class Field {
-    private Set<Wall> walls;
+public class Field implements Serializable {
+    private Set<Direction> walls;
     private int x;
     private int y;
 
@@ -14,11 +15,11 @@ public class Field {
         walls = new HashSet<>();
     }
 
-    public void addWalls(Wall wall){
+    public void addWalls(Direction wall){
         walls.add(wall);
     }
 
-    public boolean containsWall(Wall wall){
+    public boolean containsWall(Direction wall){
         return walls.contains(wall);
     }
 

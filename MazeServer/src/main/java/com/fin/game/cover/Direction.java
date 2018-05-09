@@ -1,6 +1,8 @@
 package com.fin.game.cover;
 
-public enum Wall {
+import java.io.Serializable;
+
+public enum Direction implements Serializable {
     UP,
     DOWN,
     RIGHT,

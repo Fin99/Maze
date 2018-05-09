@@ -1,31 +1,35 @@
 package com.fin;
 
-import com.fin.game.maze.InvisibleMazeWithKey;
-import com.fin.game.maze.OnlineMaze;
+import com.fin.game.maze.Maze;
+import com.fin.game.maze.MazeImplDefault;
 
-import java.io.*;
+import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Scanner;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class Server {
     static int maxClient;
-    static AtomicInteger countClient; //number of clients on the server -1
     static int mazeSize;
-    static OnlineMaze maze;
-    static AtomicInteger movePlayer; //the number of the client who's making the movePlayer now.
+    static Maze maze;
+    static List<Socket> players;
+    static Iterator<Socket> iteratorPlayers;
+    static Socket playerMoveNow;
 
     public static void main(String[] args) {
         System.out.println("Вас приветсвует сервер Maze.");
-        maxClient = selectMaxClient();
-        mazeSize = selectMazeSize();
         //create maze and initialize rest of field
         init();
         try (ServerSocket server = new ServerSocket(selectPort())) {
             Socket client;
             while (true) {
-                new ClientThread(server.accept()).start();
+                client = server.accept();
+                players.add(client);
+                new ClientThread(client).start();
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -100,10 +104,11 @@ public class Server {
     }
 
     private static void init() {
-        countClient = new AtomicInteger(-1);
-        maze = new InvisibleMazeWithKey();
-        maze.setSize(mazeSize);
-        maze.generateMaze(0, 0);
-        movePlayer = new AtomicInteger(0);
+        maxClient = selectMaxClient();
+        mazeSize = selectMazeSize();
+        maze = MazeImplDefault.generateMaze(mazeSize);
+        players = new ArrayList<>();
     }
+
+
 }

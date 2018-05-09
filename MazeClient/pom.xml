@@ -46,17 +46,14 @@
     </build>
 
     <properties>
-        <spring-fraemwork-version>5.0.2.RELEASE</spring-fraemwork-version>
-        <slf4j.version>1.7.3</slf4j.version>
-        <logback.version>1.0.10</logback.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
     <dependencies>
         <dependency>
-            <groupId>org.jline</groupId>
-            <artifactId>jline</artifactId>
-            <version>3.1.2</version>
+            <groupId>com.fin</groupId>
+            <artifactId>MazeServer</artifactId>
+            <version>1.0-SNAPSHOT</version>
         </dependency>
     </dependencies>
 

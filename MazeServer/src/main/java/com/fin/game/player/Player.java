@@ -2,56 +2,57 @@ package com.fin.game.player;
 
 import com.fin.game.cover.Cover;
 
-public class Player {
-    private int playerX;
-    private int playerY;
-    private boolean gun;
-    private boolean key;
-    private Character icon;
-    private Cover cover;
+import java.io.Serializable;
+import java.net.Socket;
 
-    public Player(char icon, int size) {
-        this.icon = icon;
-        cover = new Cover(size);
+public class Player implements Serializable {
+    private int x;
+    private int y;
+    private Backpack backpack;
+    private Cover stepList;
+    private int id;
+
+    public Player(int x, int y, int size, int id) {
+        this.x = x;
+        this.y = y;
+        stepList = new Cover(size);
+        backpack = new Backpack();
+        this.id = id;
     }
 
-    public int getPlayerX() {
-        return playerX;
+    public int getId() {
+        return id;
     }
 
-    public void setPlayerX(int playerX) {
-        this.playerX = playerX;
+    public int getX() {
+        return x;
     }
 
-    public int getPlayerY() {
-        return playerY;
+    public void setX(int x) {
+        this.x = x;
     }
 
-    public void setPlayerY(int playerY) {
-        this.playerY = playerY;
+    public int getY() {
+        return y;
     }
 
-    public Character getIcon() {
-        return icon;
+    public void setY(int y) {
+        this.y = y;
     }
 
-    public boolean isGun() {
-        return gun;
+    public void add(Item item) {
+        backpack.add(item);
     }
 
-    public void setGun(boolean gun) {
-        this.gun = gun;
+    public void remove(String item) {
+        backpack.remove(item);
     }
 
-    public Cover getCover() {
-        return cover;
+    public boolean contains(String item) {
+        return backpack.contains(item);
     }
 
-    public boolean isKey() {
-        return key;
-    }
-
-    public void setKey(boolean key) {
-        this.key = key;
+    public Cover getStepList() {
+        return stepList;
     }
 }
