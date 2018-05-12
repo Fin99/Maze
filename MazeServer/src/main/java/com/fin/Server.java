@@ -10,26 +10,31 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Scanner;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class Server {
-    static int maxClient;
-    static int mazeSize;
-    static Maze maze;
-    static List<Socket> players;
-    static Iterator<Socket> iteratorPlayers;
-    static Socket playerMoveNow;
+    int maxClient;
+    int mazeSize;
+    Maze maze;
+    List<Socket> players;
+    AtomicReference<Socket> playerMoveNow;
+    AtomicReference<Iterator<Socket>> iteratorPlayers;
 
     public static void main(String[] args) {
+        Server server = new Server();
+        server.start();
+    }
+
+    private void start() {
         System.out.println("Вас приветсвует сервер Maze.");
         //create maze and initialize rest of field
         init();
         try (ServerSocket server = new ServerSocket(selectPort())) {
+            new NotifierThread(this).start();
             Socket client;
             while (true) {
                 client = server.accept();
-                players.add(client);
-                new ClientThread(client).start();
+                new ClientThread(client, this).start();
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -38,7 +43,7 @@ public class Server {
     }
 
     //allows the client to select a size maze
-    private static int selectMazeSize() {
+    private int selectMazeSize() {
         System.out.print("Выберите размер лабиринта. Лабиринт представляет собой квадрат, вы должны выбрать размер стороны квадрата. Допусимые размеры 5-15: ");
         Scanner scanner = new Scanner(System.in);
         while (true) {
@@ -58,7 +63,7 @@ public class Server {
     }
 
     //allows the client to select a max player on server
-    private static int selectMaxClient() {
+    private int selectMaxClient() {
         System.out.print("Выберите максимальное количество игроков, которые смогут одновременно подключиться к серверу. Допустимое количество игроков 1-3: ");
         Scanner scanner = new Scanner(System.in);
         while (true) {
@@ -77,7 +82,7 @@ public class Server {
     }
 
     //allows the client to select a port
-    private static int selectPort() {
+    private int selectPort() {
         System.out.print("Выберите порт на котором вы хотите расположить сервер. Допустимые значения больше тысячи: ");
         Scanner scanner = new Scanner(System.in);
         ServerSocket server;
@@ -103,11 +108,13 @@ public class Server {
 
     }
 
-    private static void init() {
+    private void init() {
         maxClient = selectMaxClient();
         mazeSize = selectMazeSize();
         maze = MazeImplDefault.generateMaze(mazeSize);
         players = new ArrayList<>();
+        playerMoveNow = new AtomicReference<>();
+        iteratorPlayers = new AtomicReference<>();
     }
 
 
