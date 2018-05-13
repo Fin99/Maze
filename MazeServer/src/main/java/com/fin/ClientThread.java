@@ -32,7 +32,6 @@ public class ClientThread extends Thread {
             while (true) {
                 synchronized (server) {
                     if (server.playerMoveNow.get().equals(client)) {
-                        System.out.println(idPlayer + " go");
                         Boolean isShot = (Boolean) readFromByteArray(is);
                         Direction direction = (Direction) readFromByteArray(is);
                         if (isShot) {
@@ -101,10 +100,8 @@ public class ClientThread extends Thread {
     private void nextPlayer() {
         if (server.players.size() == 0) System.exit(0);
         if (server.iteratorPlayers.get().hasNext()) {
-            System.out.println(idPlayer + " use old iterator");
             server.playerMoveNow.set(server.iteratorPlayers.get().next());
         } else {
-            System.out.println(idPlayer + " set new iterator");
             server.iteratorPlayers.set(server.players.iterator());
             server.playerMoveNow.set(server.iteratorPlayers.get().next());
         }

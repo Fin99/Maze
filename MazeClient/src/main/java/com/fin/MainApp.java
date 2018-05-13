@@ -1,13 +1,11 @@
 package com.fin;
 
-import com.fin.game.cover.Direction;
 import javafx.application.Application;
-import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
-import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -23,6 +21,8 @@ public class MainApp extends Application {
     public void start(Stage primaryStage) throws Exception {
         this.primaryStage = primaryStage;
         this.primaryStage.setTitle("Maze");
+        this.primaryStage.setMaximized(true);
+        //this.primaryStage.initStyle(StageStyle.UNDECORATED);
         connectToServer();
         initRootLayout();
     }
@@ -43,11 +43,13 @@ public class MainApp extends Application {
             FXMLLoader loader = new FXMLLoader();
             loader.setLocation(MainApp.class.getResource("/main.fxml"));
             rootLayout = loader.load();
-
             Scene scene = new Scene(rootLayout);
-            scene.setOnKeyPressed(new KeyListener(rootLayout, server));
             primaryStage.setScene(scene);
             primaryStage.show();
+            scene.setOnKeyPressed(new KeyListener(server));
+            ServerMessageService service = new ServerMessageService(server);
+            service.setOnSucceeded(new ServerMessageHandler(rootLayout, service));
+            service.start();
         } catch (IOException e) {
             e.printStackTrace();
         }

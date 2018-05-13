@@ -5,45 +5,43 @@
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.effect.Blend?>
 <?import javafx.scene.image.*?>
-<?import javafx.scene.layout.*?>
+<?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.text.Font?>
 <AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0"
             prefWidth="800.0" xmlns="http://javafx.com/javafx/9.0.1" xmlns:fx="http://javafx.com/fxml/1">
     <children>
-        <GridPane fx:id="cover" gridLinesVisible="true" prefHeight="600.0" prefWidth="600.0">
-            <columnConstraints>
-            </columnConstraints>
-            <rowConstraints>
-            </rowConstraints>
-            <children>
-                <ImageView fx:id="human" fitHeight="100.0" fitWidth="100.0" pickOnBounds="true" preserveRatio="true">
-                    <image>
-                        <Image url="@human.png"/>
-                    </image>
-                </ImageView>
-            </children>
-            <children>
-                <ImageView fx:id="monster" fitHeight="100.0" fitWidth="100.0" pickOnBounds="true" preserveRatio="true" visible="false">
-                    <image>
-                        <Image url="@monster.png"/>
-                    </image>
-                </ImageView>
-            </children>
-            <children>
-                <ImageView fx:id="keyInMaze" fitHeight="100.0" fitWidth="100.0" pickOnBounds="true" preserveRatio="true" visible="false">
-                    <image>
-                        <Image url="@key.png"/>
-                    </image>
-                </ImageView>
-            </children>
-            <children>
-                <ImageView fx:id="gunInMaze" fitHeight="100.0" fitWidth="100.0" pickOnBounds="true" preserveRatio="true" visible="false">
-                    <image>
-                        <Image url="@gun.png"/>
-                    </image>
-                </ImageView>
-            </children>
-        </GridPane>
+
+        <ImageView fx:id="human" fitHeight="100.0" fitWidth="100.0" pickOnBounds="true" preserveRatio="true">
+            <image>
+                <Image url="@human.png"/>
+            </image>
+        </ImageView>
+    </children>
+    <children>
+        <ImageView fx:id="monster" fitHeight="100.0" fitWidth="100.0" pickOnBounds="true" preserveRatio="true"
+                   visible="false">
+            <image>
+                <Image url="@monster.png"/>
+            </image>
+        </ImageView>
+    </children>
+    <children>
+        <ImageView fx:id="keyInMaze" fitHeight="100.0" fitWidth="100.0" pickOnBounds="true" preserveRatio="true"
+                   visible="false">
+            <image>
+                <Image url="@key.png"/>
+            </image>
+        </ImageView>
+    </children>
+    <children>
+        <ImageView fx:id="gunInMaze" fitHeight="100.0" fitWidth="100.0" pickOnBounds="true" preserveRatio="true"
+                   visible="false">
+            <image>
+                <Image url="@gun.png"/>
+            </image>
+        </ImageView>
+    </children>
+    <children>
         <Button layoutX="600.0" layoutY="500.0" mnemonicParsing="false" prefHeight="100.0" prefWidth="200.0" text="Меню"
                 textOverrun="CLIP">
             <effect>
@@ -53,7 +51,9 @@
                 <Font name="Comic Sans MS" size="31.0"/>
             </font>
         </Button>
-        <ImageView fitHeight="200.0" fitWidth="200.0" layoutX="630.0" pickOnBounds="true" preserveRatio="true">
+    </children>
+    <children>
+        <ImageView fx:id="bag" pickOnBounds="true" preserveRatio="true">
             <image>
                 <Image url="@bag.png"/>
             </image>
@@ -61,18 +61,24 @@
                 <Rectangle2D/>
             </viewport>
         </ImageView>
-        <ImageView fx:id="gun" fitHeight="100.0" fitWidth="100.0" layoutX="605.0" layoutY="220.0" pickOnBounds="true"
+    </children>
+    <children>
+        <ImageView fx:id="gun" pickOnBounds="true"
                    preserveRatio="true" visible="false">
             <image>
                 <Image url="@gun.png"/>
             </image>
         </ImageView>
-        <ImageView fx:id="key" fitHeight="100.0" fitWidth="100.0" layoutX="720.0" layoutY="200.0" pickOnBounds="true"
+    </children>
+    <children>
+        <ImageView fx:id="key" pickOnBounds="true"
                    preserveRatio="true" visible="false">
             <image>
                 <Image url="@key.png"/>
             </image>
         </ImageView>
+    </children>
+    <children>
         <TextArea disable="true" editable="false" layoutX="600.0" layoutY="300.0" prefHeight="200.0" prefWidth="200.0"/>
     </children>
 </AnchorPane>

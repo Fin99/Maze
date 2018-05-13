@@ -17,6 +17,6 @@ public interface Maze {
     void deletePlayer(int idPlayer);
     Player getFirstPlayer();
     List<Player> getPlayers() ;
-
+    Cover getCover();
     List<Item> getItems() ;
 }

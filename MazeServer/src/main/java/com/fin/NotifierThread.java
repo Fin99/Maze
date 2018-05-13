@@ -18,7 +18,6 @@ public class NotifierThread extends Thread {
                     e.printStackTrace();
                 }
             }
-            System.err.println("Уведомил");
         }
     }
 }

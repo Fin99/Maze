@@ -5,7 +5,7 @@ import com.fin.game.cover.Cover;
 import java.io.Serializable;
 import java.net.Socket;
 
-public class Player implements Serializable {
+public class Player implements Serializable, Position {
     private int x;
     private int y;
     private Backpack backpack;

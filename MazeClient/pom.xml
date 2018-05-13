@@ -31,7 +31,7 @@
                             <archive>
                                 <manifest>
                                     <mainClass>
-                                        com.fin.Player
+                                        com.fin.MainApp
                                     </mainClass>
                                 </manifest>
                             </archive>

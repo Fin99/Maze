@@ -149,6 +149,11 @@ public class MazeImplDefault implements Maze, Serializable {
         return players;
     }
 
+    @Override
+    public Cover getCover() {
+        return cover;
+    }
+
     public List<Item> getItems() {
         return items;
     }
