@@ -15,10 +15,11 @@ import java.util.concurrent.atomic.AtomicReference;
 public class Server {
     int maxClient;
     int mazeSize;
-    Maze maze;
-    List<Socket> players;
-    AtomicReference<Socket> playerMoveNow;
-    AtomicReference<Iterator<Socket>> iteratorPlayers;
+    volatile Maze maze;
+    volatile List<Socket> playersSocket;
+    volatile List<Integer> playersId;
+    volatile Socket playerMoveNow;
+    volatile Iterator<Socket> iteratorPlayers;
 
     public static void main(String[] args) {
         Server server = new Server();
@@ -112,9 +113,8 @@ public class Server {
         maxClient = selectMaxClient();
         mazeSize = selectMazeSize();
         maze = MazeImplDefault.generateMaze(mazeSize);
-        players = new ArrayList<>();
-        playerMoveNow = new AtomicReference<>();
-        iteratorPlayers = new AtomicReference<>();
+        playersSocket = new ArrayList<>();
+        playersId = new ArrayList<>();
     }
 
 

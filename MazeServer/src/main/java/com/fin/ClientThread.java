@@ -31,7 +31,7 @@ public class ClientThread extends Thread {
             connect();
             while (true) {
                 synchronized (server) {
-                    if (server.playerMoveNow.get().equals(client)) {
+                    if (server.playerMoveNow.equals(client)) {
                         Boolean isShot = (Boolean) readFromByteArray(is);
                         Direction direction = (Direction) readFromByteArray(is);
                         if (isShot) {
@@ -58,7 +58,8 @@ public class ClientThread extends Thread {
 
     private void deletePlayer() {
         synchronized (server) {
-            server.iteratorPlayers.get().remove();
+            server.playersId.remove(idPlayer);
+            server.iteratorPlayers.remove();
             nextPlayer();
             updatePlayers();
             server.maze.deletePlayer(idPlayer);
@@ -69,14 +70,15 @@ public class ClientThread extends Thread {
     private void connect() throws IOException {
         while (true) {
             synchronized (server) {
-                if (server.players.size() < server.maxClient) {
-                    server.players.add(client);
-                    server.iteratorPlayers.set(server.players.iterator());
-                    server.playerMoveNow.set(server.iteratorPlayers.get().next());
+                if (server.playersSocket.size() < server.maxClient) {
+                    server.playersSocket.add(client);
+                    server.iteratorPlayers = server.playersSocket.iterator();
+                    server.playerMoveNow = server.iteratorPlayers.next();
                     Maze start = server.maze.start(0, 0);
                     idPlayer = start.getFirstPlayer().getId();
+                    server.playersId.add(idPlayer);
                     writeToByteArray(os, start);
-                    writeToByteArray(os, server.playerMoveNow.get().equals(client));
+                    writeToByteArray(os, server.playerMoveNow.equals(client));
                     return;
                 }
             }
@@ -84,26 +86,31 @@ public class ClientThread extends Thread {
     }
 
     private void updatePlayers() {
-        Socket disconnect = null;
-        try {
-            for (Socket player : server.players) {
-                disconnect = player;
-                DataOutputStream os = new DataOutputStream(player.getOutputStream());
-                writeToByteArray(os, server.maze.go(null, idPlayer));
-                writeToByteArray(os, server.playerMoveNow.get().equals(player));
+        synchronized (server) {
+            Socket disconnect = null;
+            try {
+                for (Socket player : server.playersSocket) {
+                    disconnect = player;
+                    DataOutputStream os = new DataOutputStream(player.getOutputStream());
+                    writeToByteArray(os, server.maze.go(null, server.playersId.get(server.playersSocket.indexOf(player))));
+                    writeToByteArray(os, server.playerMoveNow.equals(player));
+                }
+            } catch (IOException e) {
+                System.err.println("Player disconnected (" + disconnect.getInetAddress() + ":" + disconnect.getPort() + ")");
             }
-        } catch (IOException e) {
-            System.err.println("Player disconnected (" + disconnect.getInetAddress() + ":" + disconnect.getPort() + ")");
         }
     }
 
     private void nextPlayer() {
-        if (server.players.size() == 0) System.exit(0);
-        if (server.iteratorPlayers.get().hasNext()) {
-            server.playerMoveNow.set(server.iteratorPlayers.get().next());
-        } else {
-            server.iteratorPlayers.set(server.players.iterator());
-            server.playerMoveNow.set(server.iteratorPlayers.get().next());
+        synchronized (server) {
+            if (server.playersSocket.size() == 0) System.exit(0);
+            if (server.iteratorPlayers.hasNext()) {
+
+                server.playerMoveNow = server.iteratorPlayers.next();
+            } else {
+                server.iteratorPlayers = server.playersSocket.iterator();
+                server.playerMoveNow = server.iteratorPlayers.next();
+            }
         }
     }
 

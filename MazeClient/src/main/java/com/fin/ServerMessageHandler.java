@@ -122,7 +122,6 @@ public class ServerMessageHandler implements EventHandler<WorkerStateEvent> {
         }
     }
 
-
     private void firstCall(ServerMessage message) {
         maze = message.getMaze();
         messageFlag = message.amIGoingNow();
