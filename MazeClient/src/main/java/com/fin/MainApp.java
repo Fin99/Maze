@@ -10,7 +10,6 @@ import javafx.stage.StageStyle;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.Socket;
-import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -52,13 +51,8 @@ public class MainApp extends Application {
             scene.setOnKeyPressed(new KeyListener(server));
             ExecutorService service = Executors.newFixedThreadPool(1);
             ServerMessageTask task = new ServerMessageTask(server);
-            task.setOnSucceeded(new ServerMessageHandler(rootLayout,server));
+            task.setOnSucceeded(new ServerMessageHandler(rootLayout, server));
             service.submit(task);
-            /*
-            ServerMessageService service = new ServerMessageService(server);
-            service.setOnSucceeded(new ServerMessageHandler(rootLayout, server));
-            service.start();
-            */
         } catch (IOException e) {
             e.printStackTrace();
         }

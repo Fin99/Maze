@@ -9,6 +9,8 @@ import javafx.animation.PathTransition;
 import javafx.concurrent.WorkerStateEvent;
 import javafx.event.EventHandler;
 import javafx.scene.Node;
+import javafx.scene.control.Button;
+import javafx.scene.control.TextArea;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
@@ -20,7 +22,6 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-//todo setVisible() when i required response from server
 public class ServerMessageHandler implements EventHandler<WorkerStateEvent> {
     static volatile boolean messageFlag;
 
@@ -148,19 +149,33 @@ public class ServerMessageHandler implements EventHandler<WorkerStateEvent> {
         monster = (ImageView) findElementByID("monster", rootLayout);
         setDefaultSizeImage(monster);
         gun = (ImageView) findElementByID("gun", rootLayout);
-        setDefaultSizeImage(gun);
+        gun.setFitHeight(rootLayout.getHeight()/6);
+        gun.setFitWidth(rootLayout.getHeight()/6);
         gun.setX(rootLayout.getHeight() + ((rootLayout.getWidth() - rootLayout.getHeight()) / 2 - gun.getFitWidth()) / 2);
-        gun.setY(coefficient * 2.49);
+        gun.setY(rootLayout.getHeight()/6 * 2.2);
         key = (ImageView) findElementByID("key", rootLayout);
-        setDefaultSizeImage(key);
+        key.setFitHeight(rootLayout.getHeight()/6);
+        key.setFitWidth(rootLayout.getHeight()/6);
         key.setX(rootLayout.getHeight() + (rootLayout.getWidth() - rootLayout.getHeight()) / 2 + ((rootLayout.getWidth() - rootLayout.getHeight()) / 2 - key.getFitWidth()) / 2);
-        key.setY(coefficient * 2.3);
+        key.setY(rootLayout.getHeight()/3);
         ImageView bag = (ImageView) findElementByID("bag", rootLayout);
-        bag.setFitHeight(coefficient * 2);
-        bag.setFitWidth(coefficient * 2);
+        bag.setFitHeight(rootLayout.getHeight()/3);
+        bag.setFitWidth(rootLayout.getHeight()/3);
         bag.setX(rootLayout.getHeight() + (rootLayout.getWidth() - rootLayout.getHeight() - bag.getFitWidth()) / 1.8);
-        bag.setY(coefficient * 0.2);
+        bag.setY(rootLayout.getHeight()/6 * 0.05);
         bag.setVisible(true);
+        Button button = (Button) findElementByID("menu", rootLayout);
+        button.setPrefWidth(rootLayout.getWidth() - rootLayout.getHeight());
+        button.setPrefHeight(rootLayout.getHeight()/6);
+        button.setLayoutX(rootLayout.getHeight());
+        button.setLayoutY(rootLayout.getHeight()-rootLayout.getHeight()/6);
+        button.setVisible(true);
+        TextArea infTextArea = (TextArea) findElementByID("infTextArea", rootLayout);
+        infTextArea.setPrefWidth(rootLayout.getWidth() - rootLayout.getHeight());
+        infTextArea.setPrefHeight(rootLayout.getHeight()/6);
+        infTextArea.setLayoutX(rootLayout.getHeight());
+        infTextArea.setLayoutY(rootLayout.getHeight()-2*rootLayout.getHeight()/6);
+        infTextArea.setVisible(true);
     }
 
     private Node findElementByID(String id, Pane parent) {

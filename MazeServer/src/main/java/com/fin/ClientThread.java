@@ -43,7 +43,7 @@ public class ClientThread extends Thread {
                         }
                         updatePlayers();
                         try {
-                            server.notifyAll();
+                            server.notify();
                             server.wait();
                         } catch (InterruptedException e) {
                             e.printStackTrace();
@@ -105,7 +105,6 @@ public class ClientThread extends Thread {
         synchronized (server) {
             if (server.playersSocket.size() == 0) System.exit(0);
             if (server.iteratorPlayers.hasNext()) {
-
                 server.playerMoveNow = server.iteratorPlayers.next();
             } else {
                 server.iteratorPlayers = server.playersSocket.iterator();

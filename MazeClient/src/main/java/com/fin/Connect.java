@@ -31,7 +31,8 @@ public class Connect {
             System.exit(1);
         }
     }
-    public Object waitResponse(){
+
+    public Object waitResponse() {
         try {
             return readFromByteArray(is);
         } catch (IOException e) {

@@ -11,7 +11,7 @@ public class ServerMessageTask extends Task<ServerMessage> {
     }
 
     @Override
-    protected ServerMessage call(){
+    protected ServerMessage call() {
         return new ServerMessage((Maze) server.waitResponse(), (Boolean) server.waitResponse());
     }
 }

@@ -10,7 +10,8 @@
 <AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0"
             prefWidth="800.0" xmlns="http://javafx.com/javafx/9.0.1" xmlns:fx="http://javafx.com/fxml/1">
     <children>
-        <ImageView fx:id="human" fitHeight="100.0" fitWidth="100.0" pickOnBounds="true" preserveRatio="true" visible="false">
+        <ImageView fx:id="human" fitHeight="100.0" fitWidth="100.0" pickOnBounds="true" preserveRatio="true"
+                   visible="false">
             <image>
                 <Image url="@human.png"/>
             </image>
@@ -41,17 +42,6 @@
         </ImageView>
     </children>
     <children>
-        <Button layoutX="600.0" layoutY="500.0" mnemonicParsing="false" prefHeight="100.0" prefWidth="200.0" text="Меню"
-                textOverrun="CLIP">
-            <effect>
-                <Blend/>
-            </effect>
-            <font>
-                <Font name="Comic Sans MS" size="31.0"/>
-            </font>
-        </Button>
-    </children>
-    <children>
         <ImageView fx:id="bag" pickOnBounds="true" preserveRatio="true" visible="false">
             <image>
                 <Image url="@bag.png"/>
@@ -78,6 +68,18 @@
         </ImageView>
     </children>
     <children>
-        <TextArea disable="true" editable="false" layoutX="600.0" layoutY="300.0" prefHeight="200.0" prefWidth="200.0"/>
+        <TextArea fx:id="infTextArea" disable="true" editable="false" layoutX="600.0" layoutY="300.0" prefHeight="200.0"
+                  prefWidth="200.0" visible="false"/>
+    </children>
+    <children>
+        <Button fx:id="menu" layoutX="600.0" layoutY="500.0" mnemonicParsing="false" prefHeight="100.0" prefWidth="200.0" text="Меню"
+                textOverrun="CLIP" visible="false">
+            <effect>
+                <Blend/>
+            </effect>
+            <font>
+                <Font name="Comic Sans MS" size="31.0"/>
+            </font>
+        </Button>
     </children>
 </AnchorPane>

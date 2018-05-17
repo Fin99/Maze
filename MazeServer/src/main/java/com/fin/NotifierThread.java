@@ -12,7 +12,7 @@ public class NotifierThread extends Thread {
         while (true) {
             synchronized (server) {
                 try {
-                    server.notifyAll();
+                    server.notify();
                     server.wait();
                 } catch (InterruptedException e) {
                     e.printStackTrace();
