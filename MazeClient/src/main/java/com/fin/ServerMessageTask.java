@@ -11,9 +11,7 @@ public class ServerMessageTask extends Task<ServerMessage> {
     }
 
     @Override
-    protected ServerMessage call() throws Exception {
-        Maze maze = (Maze) server.waitResponse();
-        Boolean amIGoingNow = (Boolean) server.waitResponse();
-        return new ServerMessage(maze, amIGoingNow);
+    protected ServerMessage call(){
+        return new ServerMessage((Maze) server.waitResponse(), (Boolean) server.waitResponse());
     }
 }

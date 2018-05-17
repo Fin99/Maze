@@ -5,7 +5,7 @@ import com.fin.game.cover.Field;
 import com.fin.game.maze.Maze;
 import com.fin.game.player.Item;
 import com.fin.game.player.Position;
-import javafx.concurrent.Service;
+import javafx.animation.PathTransition;
 import javafx.concurrent.WorkerStateEvent;
 import javafx.event.EventHandler;
 import javafx.scene.Node;
@@ -13,16 +13,20 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.shape.Line;
+import javafx.util.Duration;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
+//todo setVisible() when i required response from server
 public class ServerMessageHandler implements EventHandler<WorkerStateEvent> {
     static volatile boolean messageFlag;
 
     private boolean isFirstCall;
 
-    private Service service;
+    private Connect server;
 
     private AnchorPane rootLayout;
     private double coefficient;
@@ -40,9 +44,9 @@ public class ServerMessageHandler implements EventHandler<WorkerStateEvent> {
         isFirstCall = true;
     }
 
-    public ServerMessageHandler(AnchorPane rootLayout, Service service) {
+    public ServerMessageHandler(AnchorPane rootLayout, Connect server) {
         this.rootLayout = rootLayout;
-        this.service = service;
+        this.server = server;
     }
 
     @Override
@@ -53,8 +57,10 @@ public class ServerMessageHandler implements EventHandler<WorkerStateEvent> {
         } else {
             simpleCall((ServerMessage) event.getSource().getValue());
         }
-        service.reset();
-        service.start();
+        ExecutorService service = Executors.newFixedThreadPool(1);
+        ServerMessageTask task = new ServerMessageTask(server);
+        task.setOnSucceeded(this);
+        service.submit(task);
     }
 
     private void simpleCall(ServerMessage message) {
@@ -66,9 +72,13 @@ public class ServerMessageHandler implements EventHandler<WorkerStateEvent> {
         }
         anotherPlayers.clear();
         //change my position
+        if (human.getX() != maze.getFirstPlayer().getX() * coefficient || human.getY() != maze.getFirstPlayer().getY() * coefficient) {
+            Line path = new Line(human.getX() + coefficient * 0.5, human.getY() + coefficient * 0.5, maze.getFirstPlayer().getX() * coefficient + coefficient * 0.5, maze.getFirstPlayer().getY() * coefficient + coefficient * 0.5);
+            PathTransition pathTransition = new PathTransition(Duration.seconds(1), path, human);
+            pathTransition.play();
+        }
         human.setX(maze.getFirstPlayer().getX() * coefficient);
         human.setY(maze.getFirstPlayer().getY() * coefficient);
-
         //update cover maze
         for (Field field : maze.getCover().getCov()) {
             if (field.containsWall(Direction.UP)) {
@@ -130,6 +140,7 @@ public class ServerMessageHandler implements EventHandler<WorkerStateEvent> {
         rootLayout.getChildren().add(new Line(rootLayout.getHeight(), 0, rootLayout.getHeight(), rootLayout.getHeight()));
         human = (ImageView) findElementByID("human", rootLayout);
         setDefaultSizeImage(human);
+        human.setVisible(true);
         gunInMaze = (ImageView) findElementByID("gunInMaze", rootLayout);
         setDefaultSizeImage(gunInMaze);
         keyInMaze = (ImageView) findElementByID("keyInMaze", rootLayout);
@@ -149,6 +160,7 @@ public class ServerMessageHandler implements EventHandler<WorkerStateEvent> {
         bag.setFitWidth(coefficient * 2);
         bag.setX(rootLayout.getHeight() + (rootLayout.getWidth() - rootLayout.getHeight() - bag.getFitWidth()) / 1.8);
         bag.setY(coefficient * 0.2);
+        bag.setVisible(true);
     }
 
     private Node findElementByID(String id, Pane parent) {
