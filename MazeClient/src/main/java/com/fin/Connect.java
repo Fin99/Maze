@@ -52,7 +52,7 @@ public class Connect {
         stream.flush();
     }
 
-    private Object readFromByteArray(DataInputStream stream) throws IOException {
+    public Object readFromByteArray(DataInputStream stream) throws IOException {
         int lengthBuff = stream.readInt();
         byte[] buff = new byte[lengthBuff];
         stream.readFully(buff, 0, lengthBuff);

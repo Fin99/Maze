@@ -2,16 +2,18 @@ package com.fin;
 
 import com.fin.game.cover.Direction;
 import com.fin.game.maze.Maze;
+import com.fin.game.player.Player;
+import com.fin.game.player.Position;
 
 import java.io.*;
 import java.net.Socket;
 
-public class ClientThread extends Thread {
+public class ClientThread extends Thread implements Serializable {
+    private final Server server;
     private DataOutputStream os;
     private DataInputStream is;
     private Socket client;
     private int idPlayer;
-    private final Server server;
 
     ClientThread(Socket client, Server server) {
         this.server = server;
@@ -35,13 +37,18 @@ public class ClientThread extends Thread {
                         Boolean isShot = (Boolean) readFromByteArray(is);
                         Direction direction = (Direction) readFromByteArray(is);
                         if (isShot) {
-                            server.maze.shot(idPlayer, direction);
+                            Player player = null;
+                            for (Player p : server.maze.getPlayers()) {
+                                if (p.getId() == idPlayer) player = p;
+                            }
                             nextPlayer();
+                            Position position = server.maze.shot(idPlayer, direction);
+                            updatePlayers(player, position);
                         } else {
                             server.maze.go(direction, idPlayer);
                             nextPlayer();
+                            updatePlayers();
                         }
-                        updatePlayers();
                         try {
                             server.notify();
                             server.wait();
@@ -79,6 +86,8 @@ public class ClientThread extends Thread {
                     server.playersId.add(idPlayer);
                     writeToByteArray(os, start);
                     writeToByteArray(os, server.playerMoveNow.equals(client));
+                    writeToByteArray(os, null);
+                    writeToByteArray(os, null);
                     return;
                 }
             }
@@ -94,9 +103,30 @@ public class ClientThread extends Thread {
                     DataOutputStream os = new DataOutputStream(player.getOutputStream());
                     writeToByteArray(os, server.maze.go(null, server.playersId.get(server.playersSocket.indexOf(player))));
                     writeToByteArray(os, server.playerMoveNow.equals(player));
+                    writeToByteArray(os, null);
+                    writeToByteArray(os, null);
                 }
             } catch (IOException e) {
                 System.err.println("Player disconnected (" + disconnect.getInetAddress() + ":" + disconnect.getPort() + ")");
+            }
+        }
+    }
+
+    private void updatePlayers(Player p, Position position) {
+        synchronized (server) {
+            Socket disconnect = null;
+            try {
+                for (Socket player : server.playersSocket) {
+                    disconnect = player;
+                    DataOutputStream os = new DataOutputStream(player.getOutputStream());
+                    writeToByteArray(os, server.maze.go(null, server.playersId.get(server.playersSocket.indexOf(player))));
+                    writeToByteArray(os, server.playerMoveNow.equals(player));
+                    writeToByteArray(os, p);
+                    writeToByteArray(os, position);
+                }
+            } catch (IOException e) {
+                System.err.println("Player disconnected (" + disconnect.getInetAddress() + ":" + disconnect.getPort() + ")");
+                e.printStackTrace();
             }
         }
     }
@@ -112,6 +142,7 @@ public class ClientThread extends Thread {
             }
         }
     }
+
 
     public void writeToByteArray(DataOutputStream stream, Object element) throws IOException {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();

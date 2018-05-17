@@ -5,6 +5,7 @@ import com.fin.game.cover.Direction;
 import com.fin.game.cover.Field;
 import com.fin.game.player.Item;
 import com.fin.game.player.Player;
+import com.fin.game.player.Position;
 
 import java.io.Serializable;
 import java.util.*;
@@ -17,6 +18,7 @@ public class MazeImplDefault implements Maze, Serializable {
     private List<Item> items;
     private int sizeCover;
     private int idCounter;
+
     public MazeImplDefault(Cover cover) {
         this(cover, new ArrayList<>());
         players.add(new Player(sizeCover - 1, sizeCover - 1, sizeCover, -1));
@@ -76,13 +78,13 @@ public class MazeImplDefault implements Maze, Serializable {
         for (Player p : players) {
             if (p.getId() == -1) monster = p;
         }
-        if(monster!=null && player.getX()==monster.getX() && player.getY()==monster.getY()){
+        if (monster != null && player.getX() == monster.getX() && player.getY() == monster.getY()) {
             player.setX(0);
-            player.setY(sizeCover-1);
+            player.setY(sizeCover - 1);
             player.remove("Key");
             player.remove("Gun");
-            items.add(new Item("Key", sizeCover/2, sizeCover/2));
-            items.add(new Item("Gun", sizeCover/2+1, sizeCover/2+1));
+            items.add(new Item("Key", sizeCover / 2, sizeCover / 2));
+            items.add(new Item("Gun", sizeCover / 2 + 1, sizeCover / 2 + 1));
         }
         return getVisibleMaze(this, player);
     }
@@ -98,37 +100,88 @@ public class MazeImplDefault implements Maze, Serializable {
     }
 
     @Override
-    public void shot(int idPlayer, Direction direction) {
+    public Position shot(int idPlayer, Direction direction) {
         Player player = null;
         for (Player p : players) {
             if (p.getId() == idPlayer) player = p;
         }
-        int startX = player.getX();
-        int startY = player.getY();
-        while (!cover.containsWall(startX, startY, direction)) {
-            switch (direction) {
-                case UP:
-                    startY--;
-                    break;
-                case DOWN:
-                    startY++;
-                    break;
-                case LEFT:
-                    startX--;
-                    break;
-                case RIGHT:
-                    startX++;
-                    break;
-            }
-            Iterator<Player> iterator = players.iterator();
-            while (iterator.hasNext()) {
-                Player i = iterator.next();
-                if (i.getId() == -1 && i.getX() == player.getX() && i.getY() == player.getY()) {
-                    iterator.remove();
-                    return;
+        if (player.contains("Gun")) {
+            player.remove("Gun");
+            items.add(new Item("Gun", sizeCover / 2 + 1, sizeCover / 2 + 1));
+            int bulletX = player.getX();
+            int bulletY = player.getY();
+            while (!cover.containsWall(bulletX, bulletY, direction)) {
+                switch (direction) {
+                    case UP:
+                        bulletY--;
+                        break;
+                    case DOWN:
+                        bulletY++;
+                        break;
+                    case LEFT:
+                        bulletX--;
+                        break;
+                    case RIGHT:
+                        bulletX++;
+                        break;
+                }
+                Iterator<Player> iterator = players.iterator();
+                while (iterator.hasNext()) {
+                    Player i = iterator.next();
+                    if (i.getId() == -1 && i.getX() == bulletX && i.getY() == bulletY) {
+                        iterator.remove();
+                        int finalBulletX = bulletX;
+                        int finalBulletY = bulletY;
+                        return new Position() {
+
+                            @Override
+                            public int getX() {
+                                return finalBulletX;
+                            }
+
+                            @Override
+                            public void setX(int x) {
+
+                            }
+
+                            @Override
+                            public int getY() {
+                                return finalBulletY;
+                            }
+
+                            @Override
+                            public void setY(int y) {
+
+                            }
+                        };
+                    }
                 }
             }
+            int finalBulletX1 = bulletX;
+            int finalBulletY1 = bulletY;
+            return new Position() {
+                @Override
+                public int getX() {
+                    return finalBulletX1;
+                }
+
+                @Override
+                public void setX(int x) {
+
+                }
+
+                @Override
+                public int getY() {
+                    return finalBulletY1;
+                }
+
+                @Override
+                public void setY(int y) {
+
+                }
+            };
         }
+        return null;
     }
 
     @Override
@@ -145,6 +198,7 @@ public class MazeImplDefault implements Maze, Serializable {
         return players.get(0);
     }
 
+    @Override
     public List<Player> getPlayers() {
         return players;
     }
@@ -154,6 +208,7 @@ public class MazeImplDefault implements Maze, Serializable {
         return cover;
     }
 
+    @Override
     public List<Item> getItems() {
         return items;
     }
@@ -206,7 +261,8 @@ public class MazeImplDefault implements Maze, Serializable {
         List<Player> players = new ArrayList<>();
         players.add(player);
         for (Player p : mazeImplDefault.players) {
-            if (!p.equals(player) && player.getStepList().containsWall(p.getX(), p.getY(), Direction.MIDDLE)) players.add(p);
+            if (!p.equals(player) && player.getStepList().containsWall(p.getX(), p.getY(), Direction.MIDDLE))
+                players.add(p);
         }
         return players;
     }

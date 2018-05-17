@@ -56,12 +56,77 @@ public class ServerMessageHandler implements EventHandler<WorkerStateEvent> {
             firstCall((ServerMessage) event.getSource().getValue());
             isFirstCall = false;
         } else {
-            simpleCall((ServerMessage) event.getSource().getValue());
+            ServerMessage message = (ServerMessage) event.getSource().getValue();
+            if (message.getBulletStart() != null && message.getBulletFinish() != null) {
+                shotCall(message);
+            }
+            simpleCall(message);
         }
         ExecutorService service = Executors.newFixedThreadPool(1);
         ServerMessageTask task = new ServerMessageTask(server);
         task.setOnSucceeded(this);
         service.submit(task);
+    }
+
+    private void shotCall(ServerMessage message) {
+        if (message.getBulletStart().getX() - message.getBulletFinish().getX() != 0 || message.getBulletStart().getY() - message.getBulletFinish().getY() != 0) {
+            ImageView bullet = new ImageView(ServerMessageHandler.class.getResource("/bullet.png").toString());
+            rootLayout.getChildren().add(bullet);
+            setDefaultSizeImage(bullet);
+            bullet.setVisible(true);
+            Line path = null;
+            if (message.getBulletStart().getX() - message.getBulletFinish().getX() > 0) {
+                bullet.setRotate(180);
+                path = new Line(message.getBulletStart().getX() * coefficient, message.getBulletStart().getY() * coefficient + coefficient * 0.25, message.getBulletFinish().getX() * coefficient, message.getBulletFinish().getY() * coefficient + coefficient * 0.25);
+            }
+            if (message.getBulletStart().getX() - message.getBulletFinish().getX() < 0) {
+                path = new Line(message.getBulletStart().getX() * coefficient + coefficient * 0.75, message.getBulletStart().getY() * coefficient + coefficient * 0.25, message.getBulletFinish().getX() * coefficient + coefficient * 0.75, message.getBulletFinish().getY() * coefficient + coefficient * 0.25);
+            }
+            if (message.getBulletStart().getY() - message.getBulletFinish().getY() > 0) {
+                bullet.setRotate(-90);
+                path = new Line(message.getBulletStart().getX() * coefficient + coefficient * 0.25, message.getBulletStart().getY() * coefficient, message.getBulletFinish().getX() * coefficient + coefficient * 0.25, message.getBulletFinish().getY() * coefficient);
+            }
+            if (message.getBulletStart().getY() - message.getBulletFinish().getY() < 0) {
+                bullet.setRotate(90);
+                path = new Line(message.getBulletStart().getX() * coefficient + coefficient * 0.25, message.getBulletStart().getY() * coefficient + coefficient * 0.75, message.getBulletFinish().getX() * coefficient + coefficient * 0.25, message.getBulletFinish().getY() * coefficient + coefficient * 0.75);
+            }
+            PathTransition pathTransition = new PathTransition(Duration.seconds(1), path, bullet);
+            pathTransition.play();
+            pathTransition.setOnFinished((w) -> {
+                bullet.setVisible(false);
+                rootLayout.getChildren().remove(bullet);
+                for (ImageView image : anotherPlayers) {
+                    rootLayout.getChildren().remove(image);
+                }
+                anotherPlayers.clear();
+                if (maze.getFirstPlayer().contains("Gun")) {
+                    gun.setVisible(true);
+                } else {
+                    gun.setVisible(false);
+                }
+                Item gunMaze = null;
+                for (Item i : maze.getItems()) {
+                    if (i.getName().equals("Gun")) gunMaze = i;
+                }
+                updateImageInMaze(gunMaze, gunInMaze);
+                //add on cover icon players
+                Position positionMonster = null;
+                for (int i = 1; i < maze.getPlayers().size(); i++) {
+                    if (maze.getPlayers().get(i).getId() == -1) {
+                        positionMonster = maze.getPlayers().get(i);
+                    } else {
+                        ImageView imageView = new ImageView(KeyListener.class.getResource("/anotherPlayer.png").toString());
+                        imageView.setFitHeight(coefficient);
+                        imageView.setFitWidth(coefficient);
+                        updateImageInMaze(maze.getPlayers().get(i), imageView);
+                        anotherPlayers.add(imageView);
+                        rootLayout.getChildren().add(imageView);
+                    }
+                }
+                //add on cover monster
+                updateImageInMaze(positionMonster, monster);
+            });
+        }
     }
 
     private void simpleCall(ServerMessage message) {
@@ -118,10 +183,11 @@ public class ServerMessageHandler implements EventHandler<WorkerStateEvent> {
             if (i.getName().equals("Gun")) gunMaze = i;
         }
         updateImageInMaze(gunMaze, gunInMaze);
-        //add on cover icon players and monster
+        //add on cover icon players
+        Position positionMonster = null;
         for (int i = 1; i < maze.getPlayers().size(); i++) {
             if (maze.getPlayers().get(i).getId() == -1) {
-                updateImageInMaze(maze.getPlayers().get(i), monster);
+                positionMonster = maze.getPlayers().get(i);
             } else {
                 ImageView imageView = new ImageView(KeyListener.class.getResource("/anotherPlayer.png").toString());
                 imageView.setFitHeight(coefficient);
@@ -131,6 +197,8 @@ public class ServerMessageHandler implements EventHandler<WorkerStateEvent> {
                 rootLayout.getChildren().add(imageView);
             }
         }
+        //add on cover monster
+        updateImageInMaze(positionMonster, monster);
     }
 
     private void firstCall(ServerMessage message) {
@@ -149,32 +217,32 @@ public class ServerMessageHandler implements EventHandler<WorkerStateEvent> {
         monster = (ImageView) findElementByID("monster", rootLayout);
         setDefaultSizeImage(monster);
         gun = (ImageView) findElementByID("gun", rootLayout);
-        gun.setFitHeight(rootLayout.getHeight()/6);
-        gun.setFitWidth(rootLayout.getHeight()/6);
+        gun.setFitHeight(rootLayout.getHeight() / 6);
+        gun.setFitWidth(rootLayout.getHeight() / 6);
         gun.setX(rootLayout.getHeight() + ((rootLayout.getWidth() - rootLayout.getHeight()) / 2 - gun.getFitWidth()) / 2);
-        gun.setY(rootLayout.getHeight()/6 * 2.2);
+        gun.setY(rootLayout.getHeight() / 6 * 2.2);
         key = (ImageView) findElementByID("key", rootLayout);
-        key.setFitHeight(rootLayout.getHeight()/6);
-        key.setFitWidth(rootLayout.getHeight()/6);
+        key.setFitHeight(rootLayout.getHeight() / 6);
+        key.setFitWidth(rootLayout.getHeight() / 6);
         key.setX(rootLayout.getHeight() + (rootLayout.getWidth() - rootLayout.getHeight()) / 2 + ((rootLayout.getWidth() - rootLayout.getHeight()) / 2 - key.getFitWidth()) / 2);
-        key.setY(rootLayout.getHeight()/3);
+        key.setY(rootLayout.getHeight() / 3);
         ImageView bag = (ImageView) findElementByID("bag", rootLayout);
-        bag.setFitHeight(rootLayout.getHeight()/3);
-        bag.setFitWidth(rootLayout.getHeight()/3);
+        bag.setFitHeight(rootLayout.getHeight() / 3);
+        bag.setFitWidth(rootLayout.getHeight() / 3);
         bag.setX(rootLayout.getHeight() + (rootLayout.getWidth() - rootLayout.getHeight() - bag.getFitWidth()) / 1.8);
-        bag.setY(rootLayout.getHeight()/6 * 0.05);
+        bag.setY(rootLayout.getHeight() / 6 * 0.05);
         bag.setVisible(true);
         Button button = (Button) findElementByID("menu", rootLayout);
         button.setPrefWidth(rootLayout.getWidth() - rootLayout.getHeight());
-        button.setPrefHeight(rootLayout.getHeight()/6);
+        button.setPrefHeight(rootLayout.getHeight() / 6);
         button.setLayoutX(rootLayout.getHeight());
-        button.setLayoutY(rootLayout.getHeight()-rootLayout.getHeight()/6);
+        button.setLayoutY(rootLayout.getHeight() - rootLayout.getHeight() / 6);
         button.setVisible(true);
         TextArea infTextArea = (TextArea) findElementByID("infTextArea", rootLayout);
         infTextArea.setPrefWidth(rootLayout.getWidth() - rootLayout.getHeight());
-        infTextArea.setPrefHeight(rootLayout.getHeight()/6);
+        infTextArea.setPrefHeight(rootLayout.getHeight() / 6);
         infTextArea.setLayoutX(rootLayout.getHeight());
-        infTextArea.setLayoutY(rootLayout.getHeight()-2*rootLayout.getHeight()/6);
+        infTextArea.setLayoutY(rootLayout.getHeight() - 2 * rootLayout.getHeight() / 6);
         infTextArea.setVisible(true);
     }
 

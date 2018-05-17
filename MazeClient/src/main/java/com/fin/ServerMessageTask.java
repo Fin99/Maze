@@ -1,6 +1,7 @@
 package com.fin;
 
 import com.fin.game.maze.Maze;
+import com.fin.game.player.Position;
 import javafx.concurrent.Task;
 
 public class ServerMessageTask extends Task<ServerMessage> {
@@ -12,6 +13,6 @@ public class ServerMessageTask extends Task<ServerMessage> {
 
     @Override
     protected ServerMessage call() {
-        return new ServerMessage((Maze) server.waitResponse(), (Boolean) server.waitResponse());
+        return new ServerMessage((Maze) server.waitResponse(),(Boolean) server.waitResponse(),  (Position) server.waitResponse(), (Position) server.waitResponse());
     }
 }

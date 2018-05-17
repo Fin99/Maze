@@ -1,6 +1,8 @@
 package com.fin.game.player;
 
-public interface Position {
+import java.io.Serializable;
+
+public interface Position extends Serializable {
     int getX();
     void setX(int x);
     int getY();
