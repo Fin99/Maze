@@ -148,41 +148,7 @@ public class ServerMessageHandler implements EventHandler<WorkerStateEvent> {
         }
         human.setX(maze.getFirstPlayer().getX() * coefficient);
         human.setY(maze.getFirstPlayer().getY() * coefficient);
-        //update cover maze
-        //delete line
-        for (Line line : lines) {
-            rootLayout.getChildren().remove(line);
-        }
-        for (Field field : maze.getCover().getCov()) {
-            Line up = new Line(field.getX() * coefficient, field.getY() * coefficient, field.getX() * coefficient + coefficient, field.getY() * coefficient);
-            Line down = new Line(field.getX() * coefficient, field.getY() * coefficient + coefficient, field.getX() * coefficient + coefficient, field.getY() * coefficient + coefficient);
-            Line left = new Line(field.getX() * coefficient, field.getY() * coefficient, field.getX() * coefficient, field.getY() * coefficient + coefficient);
-            Line right = new Line(field.getX() * coefficient + coefficient, field.getY() * coefficient, field.getX() * coefficient + coefficient, field.getY() * coefficient + coefficient);
-            if (!field.containsWall(Direction.UP)) {
-                up.setOpacity(.002);
-                up.getStrokeDashArray().addAll(10., 5.);
-            }
-            if (!field.containsWall(Direction.DOWN)) {
-                down.setOpacity(.2);
-                down.getStrokeDashArray().addAll(10., 5.);
-            }
-            if (!field.containsWall(Direction.LEFT)) {
-                left.setOpacity(.2);
-                left.getStrokeDashArray().addAll(10., 5.);
-            }
-            if (!field.containsWall(Direction.RIGHT)) {
-                right.setOpacity(.2);
-                right.getStrokeDashArray().addAll(10., 5.);
-            }
-            lines.add(up);
-            lines.add(down);
-            lines.add(left);
-            lines.add(right);
-            rootLayout.getChildren().add(up);
-            rootLayout.getChildren().add(down);
-            rootLayout.getChildren().add(left);
-            rootLayout.getChildren().add(right);
-        }
+        updateCoverMaze();
         //update icon in bag
         if (maze.getFirstPlayer().contains("Key")) {
             key.setVisible(true);
@@ -222,6 +188,44 @@ public class ServerMessageHandler implements EventHandler<WorkerStateEvent> {
         }
         //add on cover monster
         updateImageInMaze(positionMonster, monster);
+    }
+
+    private void updateCoverMaze() {
+        //delete line
+        for (Line line : lines) {
+            rootLayout.getChildren().remove(line);
+        }
+        //draw line
+        for (Field field : maze.getCover().getCov()) {
+            Line up = new Line(field.getX() * coefficient, field.getY() * coefficient, field.getX() * coefficient + coefficient, field.getY() * coefficient);
+            Line down = new Line(field.getX() * coefficient, field.getY() * coefficient + coefficient, field.getX() * coefficient + coefficient, field.getY() * coefficient + coefficient);
+            Line left = new Line(field.getX() * coefficient, field.getY() * coefficient, field.getX() * coefficient, field.getY() * coefficient + coefficient);
+            Line right = new Line(field.getX() * coefficient + coefficient, field.getY() * coefficient, field.getX() * coefficient + coefficient, field.getY() * coefficient + coefficient);
+            if (!field.containsWall(Direction.UP)) {
+                up.setOpacity(.002);
+                up.getStrokeDashArray().addAll(10., 5.);
+            }
+            if (!field.containsWall(Direction.DOWN)) {
+                down.setOpacity(.2);
+                down.getStrokeDashArray().addAll(10., 5.);
+            }
+            if (!field.containsWall(Direction.LEFT)) {
+                left.setOpacity(.2);
+                left.getStrokeDashArray().addAll(10., 5.);
+            }
+            if (!field.containsWall(Direction.RIGHT)) {
+                right.setOpacity(.2);
+                right.getStrokeDashArray().addAll(10., 5.);
+            }
+            lines.add(up);
+            lines.add(down);
+            lines.add(left);
+            lines.add(right);
+            rootLayout.getChildren().add(up);
+            rootLayout.getChildren().add(down);
+            rootLayout.getChildren().add(left);
+            rootLayout.getChildren().add(right);
+        }
     }
 
     private void firstCall(ServerMessage message) {
@@ -267,6 +271,7 @@ public class ServerMessageHandler implements EventHandler<WorkerStateEvent> {
         infTextArea.setLayoutX(rootLayout.getHeight());
         infTextArea.setLayoutY(rootLayout.getHeight() - 2 * rootLayout.getHeight() / 6);
         infTextArea.setVisible(true);
+        updateCoverMaze();
     }
 
     private Node findElementByID(String id, Pane parent) {

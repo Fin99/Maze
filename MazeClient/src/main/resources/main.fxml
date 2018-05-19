@@ -3,12 +3,12 @@
 <?import javafx.geometry.Rectangle2D?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.TextArea?>
-<?import javafx.scene.effect.Blend?>
 <?import javafx.scene.image.*?>
 <?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.effect.Blend?>
 <?import javafx.scene.text.Font?>
-<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0"
-            prefWidth="800.0" xmlns="http://javafx.com/javafx/9.0.1" xmlns:fx="http://javafx.com/fxml/1">
+<AnchorPane fx:id="root" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0"
+            prefWidth="800.0" xmlns="http://javafx.com/javafx/9.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.fin.Controller">
     <children>
         <ImageView fx:id="human" fitHeight="100.0" fitWidth="100.0" pickOnBounds="true" preserveRatio="true"
                    visible="false">
@@ -69,11 +69,11 @@
     </children>
     <children>
         <TextArea fx:id="infTextArea" disable="true" editable="false" layoutX="600.0" layoutY="300.0" prefHeight="200.0"
-                  prefWidth="200.0" visible="false"/>
+                  prefWidth="200.0" visible="false" style="-fx-focus-color: transparent"/>
     </children>
     <children>
-        <Button fx:id="menu" layoutX="600.0" layoutY="500.0" mnemonicParsing="false" prefHeight="100.0" prefWidth="200.0" text="Меню"
-                textOverrun="CLIP" visible="false">
+        <Button fx:id="menu" layoutX="600.0" layoutY="500.0" mnemonicParsing="false" prefHeight="100.0"
+                prefWidth="200.0" text="Меню" visible="false" textOverrun="CLIP" style="-fx-focus-color: transparent; -fx-faint-focus-color: transparent">
             <effect>
                 <Blend/>
             </effect>
