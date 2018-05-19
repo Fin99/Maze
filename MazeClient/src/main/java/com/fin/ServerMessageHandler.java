@@ -38,11 +38,14 @@ public class ServerMessageHandler implements EventHandler<WorkerStateEvent> {
     private ImageView gunInMaze;
     private ImageView key;
     private ImageView gun;
+
     private List<ImageView> anotherPlayers;
+    private List<Line> lines;
 
     {
         anotherPlayers = new ArrayList<>();
         isFirstCall = true;
+        lines = new ArrayList<>();
     }
 
     public ServerMessageHandler(AnchorPane rootLayout, Connect server) {
@@ -75,20 +78,20 @@ public class ServerMessageHandler implements EventHandler<WorkerStateEvent> {
             setDefaultSizeImage(bullet);
             bullet.setVisible(true);
             Line path = null;
-            if (message.getBulletStart().getX() - message.getBulletFinish().getX() > 0) {
+            if (message.getBulletStart().getX() - message.getBulletFinish().getX() > 0) {//left shot
                 bullet.setRotate(180);
-                path = new Line(message.getBulletStart().getX() * coefficient, message.getBulletStart().getY() * coefficient + coefficient * 0.25, message.getBulletFinish().getX() * coefficient, message.getBulletFinish().getY() * coefficient + coefficient * 0.25);
+                path = new Line(message.getBulletStart().getX() * coefficient, message.getBulletStart().getY() * coefficient + coefficient * 0.5, message.getBulletFinish().getX() * coefficient + coefficient * 0.5, message.getBulletFinish().getY() * coefficient + coefficient * 0.5);
             }
-            if (message.getBulletStart().getX() - message.getBulletFinish().getX() < 0) {
-                path = new Line(message.getBulletStart().getX() * coefficient + coefficient * 0.75, message.getBulletStart().getY() * coefficient + coefficient * 0.25, message.getBulletFinish().getX() * coefficient + coefficient * 0.75, message.getBulletFinish().getY() * coefficient + coefficient * 0.25);
+            if (message.getBulletStart().getX() - message.getBulletFinish().getX() < 0) {//right shot
+                path = new Line(message.getBulletStart().getX() * coefficient + coefficient, message.getBulletStart().getY() * coefficient + coefficient * 0.5, message.getBulletFinish().getX() * coefficient + coefficient * 0.5, message.getBulletFinish().getY() * coefficient + coefficient * 0.5);
             }
-            if (message.getBulletStart().getY() - message.getBulletFinish().getY() > 0) {
+            if (message.getBulletStart().getY() - message.getBulletFinish().getY() > 0) {//up shot
                 bullet.setRotate(-90);
-                path = new Line(message.getBulletStart().getX() * coefficient + coefficient * 0.25, message.getBulletStart().getY() * coefficient, message.getBulletFinish().getX() * coefficient + coefficient * 0.25, message.getBulletFinish().getY() * coefficient);
+                path = new Line(message.getBulletStart().getX() * coefficient + coefficient * 0.5, message.getBulletStart().getY() * coefficient - coefficient * 0.25, message.getBulletFinish().getX() * coefficient + coefficient * 0.5, message.getBulletFinish().getY() * coefficient + coefficient * 0.5);
             }
-            if (message.getBulletStart().getY() - message.getBulletFinish().getY() < 0) {
+            if (message.getBulletStart().getY() - message.getBulletFinish().getY() < 0) {//down shot
                 bullet.setRotate(90);
-                path = new Line(message.getBulletStart().getX() * coefficient + coefficient * 0.25, message.getBulletStart().getY() * coefficient + coefficient * 0.75, message.getBulletFinish().getX() * coefficient + coefficient * 0.25, message.getBulletFinish().getY() * coefficient + coefficient * 0.75);
+                path = new Line(message.getBulletStart().getX() * coefficient + coefficient * 0.5, message.getBulletStart().getY() * coefficient + coefficient * 1.25, message.getBulletFinish().getX() * coefficient + coefficient * 0.5, message.getBulletFinish().getY() * coefficient + coefficient * 0.5);
             }
             PathTransition pathTransition = new PathTransition(Duration.seconds(1), path, bullet);
             pathTransition.play();
@@ -146,19 +149,39 @@ public class ServerMessageHandler implements EventHandler<WorkerStateEvent> {
         human.setX(maze.getFirstPlayer().getX() * coefficient);
         human.setY(maze.getFirstPlayer().getY() * coefficient);
         //update cover maze
+        //delete line
+        for (Line line : lines) {
+            rootLayout.getChildren().remove(line);
+        }
         for (Field field : maze.getCover().getCov()) {
-            if (field.containsWall(Direction.UP)) {
-                rootLayout.getChildren().add(new Line(field.getX() * coefficient, field.getY() * coefficient, field.getX() * coefficient + coefficient, field.getY() * coefficient));
+            Line up = new Line(field.getX() * coefficient, field.getY() * coefficient, field.getX() * coefficient + coefficient, field.getY() * coefficient);
+            Line down = new Line(field.getX() * coefficient, field.getY() * coefficient + coefficient, field.getX() * coefficient + coefficient, field.getY() * coefficient + coefficient);
+            Line left = new Line(field.getX() * coefficient, field.getY() * coefficient, field.getX() * coefficient, field.getY() * coefficient + coefficient);
+            Line right = new Line(field.getX() * coefficient + coefficient, field.getY() * coefficient, field.getX() * coefficient + coefficient, field.getY() * coefficient + coefficient);
+            if (!field.containsWall(Direction.UP)) {
+                up.setOpacity(.002);
+                up.getStrokeDashArray().addAll(10., 5.);
             }
-            if (field.containsWall(Direction.DOWN)) {
-                rootLayout.getChildren().add(new Line(field.getX() * coefficient, field.getY() * coefficient + coefficient, field.getX() * coefficient + coefficient, field.getY() * coefficient + coefficient));
+            if (!field.containsWall(Direction.DOWN)) {
+                down.setOpacity(.2);
+                down.getStrokeDashArray().addAll(10., 5.);
             }
-            if (field.containsWall(Direction.LEFT)) {
-                rootLayout.getChildren().add(new Line(field.getX() * coefficient, field.getY() * coefficient, field.getX() * coefficient, field.getY() * coefficient + coefficient));
+            if (!field.containsWall(Direction.LEFT)) {
+                left.setOpacity(.2);
+                left.getStrokeDashArray().addAll(10., 5.);
             }
-            if (field.containsWall(Direction.RIGHT)) {
-                rootLayout.getChildren().add(new Line(field.getX() * coefficient + coefficient, field.getY() * coefficient, field.getX() * coefficient + coefficient, field.getY() * coefficient + coefficient));
+            if (!field.containsWall(Direction.RIGHT)) {
+                right.setOpacity(.2);
+                right.getStrokeDashArray().addAll(10., 5.);
             }
+            lines.add(up);
+            lines.add(down);
+            lines.add(left);
+            lines.add(right);
+            rootLayout.getChildren().add(up);
+            rootLayout.getChildren().add(down);
+            rootLayout.getChildren().add(left);
+            rootLayout.getChildren().add(right);
         }
         //update icon in bag
         if (maze.getFirstPlayer().contains("Key")) {
