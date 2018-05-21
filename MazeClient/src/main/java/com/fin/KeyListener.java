@@ -6,10 +6,8 @@ import javafx.scene.input.KeyEvent;
 
 
 public class KeyListener implements EventHandler<KeyEvent> {
-    private Connect server;
 
-    public KeyListener(Connect server) {
-        this.server = server;
+    public KeyListener() {
     }
 
     @Override
@@ -17,28 +15,28 @@ public class KeyListener implements EventHandler<KeyEvent> {
         if (ServerMessageHandler.messageFlag) {
             switch (event.getCode()) {
                 case RIGHT:
-                    server.sendRequest(true, Direction.RIGHT);
+                    Connect.sendRequest("Shot", Direction.RIGHT);
                     break;
                 case LEFT:
-                    server.sendRequest(true, Direction.LEFT);
+                    Connect.sendRequest("Shot", Direction.LEFT);
                     break;
                 case UP:
-                    server.sendRequest(true, Direction.UP);
+                    Connect.sendRequest("Shot", Direction.UP);
                     break;
                 case DOWN:
-                    server.sendRequest(true, Direction.DOWN);
+                    Connect.sendRequest("Shot", Direction.DOWN);
                     break;
                 case W:
-                    server.sendRequest(false, Direction.UP);
+                    Connect.sendRequest("Move", Direction.UP);
                     break;
                 case A:
-                    server.sendRequest(false, Direction.LEFT);
+                    Connect.sendRequest("Move", Direction.LEFT);
                     break;
                 case S:
-                    server.sendRequest(false, Direction.DOWN);
+                    Connect.sendRequest("Move", Direction.DOWN);
                     break;
                 case D:
-                    server.sendRequest(false, Direction.RIGHT);
+                    Connect.sendRequest("Move", Direction.RIGHT);
                     break;
             }
         }

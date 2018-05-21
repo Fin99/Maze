@@ -2,11 +2,14 @@ package com.fin;
 
 import com.fin.game.cover.Direction;
 import com.fin.game.maze.Maze;
+import com.fin.game.maze.MazeImplDefault;
 import com.fin.game.player.Player;
 import com.fin.game.player.Position;
 
 import java.io.*;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ClientThread extends Thread implements Serializable {
     private final Server server;
@@ -34,20 +37,15 @@ public class ClientThread extends Thread implements Serializable {
             while (true) {
                 synchronized (server) {
                     if (server.playerMoveNow.equals(client)) {
-                        Boolean isShot = (Boolean) readFromByteArray(is);
-                        Direction direction = (Direction) readFromByteArray(is);
-                        if (isShot) {
-                            Player player = null;
-                            for (Player p : server.maze.getPlayers()) {
-                                if (p.getId() == idPlayer) player = p;
-                            }
-                            nextPlayer();
-                            Position position = server.maze.shot(idPlayer, direction);
-                            updatePlayers(player, position);
-                        } else {
-                            server.maze.go(direction, idPlayer);
-                            nextPlayer();
-                            updatePlayers();
+                        String typeRequest = (String) readFromByteArray(is);
+                        if (typeRequest.equals("Move")) {
+                            move();
+                        } else if (typeRequest.equals("Shot")) {
+                            shot();
+                        } else if (typeRequest.equals("Update maze")) {
+                            server.updateMaze.replace(client, true);
+                            allUpdateMaze();
+                            move();
                         }
                         try {
                             server.notify();
@@ -61,6 +59,40 @@ public class ClientThread extends Thread implements Serializable {
         } catch (IOException e) {
             deletePlayer();
         }
+    }
+
+    private void move() throws IOException {
+        Direction direction = (Direction) readFromByteArray(is);
+        server.maze.go(direction, idPlayer);
+        nextPlayer();
+        updatePlayers();
+    }
+
+    private void shot() throws IOException {
+        Direction direction = (Direction) readFromByteArray(is);
+        Player player = null;
+        for (Player p : server.maze.getPlayers()) {
+            if (p.getId() == idPlayer) player = p;
+        }
+        nextPlayer();
+        Position position = server.maze.shot(idPlayer, direction);
+        updatePlayers(player, position);
+    }
+
+    private void allUpdateMaze() {
+        for (Boolean vote : server.updateMaze.values()) {
+            if (!vote) return;
+        }
+        server.maze = MazeImplDefault.generateMaze(server.mazeSize);
+        List<Player> players = new ArrayList<>();
+        for (int i = 0; i < server.playersId.size(); i++) {
+            Player player = new Player(i, i, server.mazeSize, server.playersId.get(i));
+            players.add(player);
+        }
+        server.maze.addAllPlayer(players);
+        server.iteratorPlayers = server.playersSocket.iterator();
+        server.playerMoveNow = server.iteratorPlayers.next();
+
     }
 
     private void deletePlayer() {
@@ -84,6 +116,7 @@ public class ClientThread extends Thread implements Serializable {
                     Maze start = server.maze.start(0, 0);
                     idPlayer = start.getFirstPlayer().getId();
                     server.playersId.add(idPlayer);
+                    server.updateMaze.put(client, false);
                     writeToByteArray(os, start);
                     writeToByteArray(os, server.playerMoveNow.equals(client));
                     writeToByteArray(os, null);

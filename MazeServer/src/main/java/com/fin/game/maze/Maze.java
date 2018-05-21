@@ -20,4 +20,5 @@ public interface Maze {
     List<Player> getPlayers() ;
     Cover getCover();
     List<Item> getItems() ;
+    void addAllPlayer(List<Player> players);
 }

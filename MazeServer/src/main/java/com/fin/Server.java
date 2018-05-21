@@ -6,10 +6,7 @@ import com.fin.game.maze.MazeImplDefault;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
 
 public class Server {
     int maxClient;
@@ -19,6 +16,7 @@ public class Server {
     volatile List<Integer> playersId;
     volatile Socket playerMoveNow;
     volatile Iterator<Socket> iteratorPlayers;
+    volatile Map<Socket, Boolean> updateMaze;
 
     public static void main(String[] args) {
         Server server = new Server();
@@ -111,6 +109,7 @@ public class Server {
     private void init() {
         maxClient = selectMaxClient();
         mazeSize = selectMazeSize();
+        updateMaze = new HashMap<>();
         maze = MazeImplDefault.generateMaze(mazeSize);
         playersSocket = new ArrayList<>();
         playersId = new ArrayList<>();

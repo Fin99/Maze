@@ -213,6 +213,11 @@ public class MazeImplDefault implements Maze, Serializable {
         return items;
     }
 
+    @Override
+    public void addAllPlayer(List<Player> players) {
+        this.players.addAll(players);
+    }
+
     public static Maze generateMaze(int s) {
         size = s;
         maze = new int[s][s];
