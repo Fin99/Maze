@@ -5,12 +5,15 @@ import com.fin.game.cover.Field;
 import com.fin.game.maze.Maze;
 import com.fin.game.player.Item;
 import com.fin.game.player.Position;
+import javafx.animation.FadeTransition;
+import javafx.animation.KeyFrame;
 import javafx.animation.PathTransition;
+import javafx.animation.Timeline;
 import javafx.concurrent.WorkerStateEvent;
 import javafx.event.EventHandler;
 import javafx.scene.Node;
-import javafx.scene.control.Button;
-import javafx.scene.control.TextArea;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
@@ -24,10 +27,9 @@ import java.util.concurrent.Executors;
 
 public class ServerMessageHandler implements EventHandler<WorkerStateEvent> {
     static volatile boolean messageFlag;
+    static volatile Timeline timer;
 
     private boolean isFirstCall;
-
-    private Connect server;
 
     private AnchorPane rootLayout;
     private double coefficient;
@@ -38,35 +40,72 @@ public class ServerMessageHandler implements EventHandler<WorkerStateEvent> {
     private ImageView gunInMaze;
     private ImageView key;
     private ImageView gun;
+    private Label label;
 
+    volatile static int[] time = {10};
     private List<ImageView> anotherPlayers;
-    private List<Line> lines;
 
     {
         anotherPlayers = new ArrayList<>();
         isFirstCall = true;
-        lines = new ArrayList<>();
     }
 
-    public ServerMessageHandler(AnchorPane rootLayout, Connect server) {
+    public ServerMessageHandler(AnchorPane rootLayout) {
         this.rootLayout = rootLayout;
-        this.server = server;
     }
 
     @Override
     public void handle(WorkerStateEvent event) {
+        //check all null beside boolean and show alert
         if (isFirstCall) {
             firstCall((ServerMessage) event.getSource().getValue());
             isFirstCall = false;
         } else {
             ServerMessage message = (ServerMessage) event.getSource().getValue();
-            if (message.getBulletStart() != null && message.getBulletFinish() != null) {
-                shotCall(message);
+            if (message.getMaze() == null && message.amIGoingNow() != null) {
+                if (message.amIGoingNow()) {
+                    Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                    alert.setHeaderText(null);
+                    alert.setTitle("Победа!");
+                    alert.setContentText("Вы победили!");
+                    alert.showAndWait();
+                } else {
+                    Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                    alert.setHeaderText(null);
+                    alert.setTitle("Поражение");
+                    alert.setContentText("Вы проиграли...");
+                    alert.showAndWait();
+                }
+            } else if (message.getMaze() != null && message.amIGoingNow() != null) {
+                if (message.getBulletStart() != null && message.getBulletFinish() != null) {
+                    shotCall(message);
+                }
+                try {
+                    simpleCall(message);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             }
-            simpleCall(message);
+        }
+        if (messageFlag) {
+            if (timer != null) timer.pause();
+            timer = new Timeline(new KeyFrame(Duration.seconds(1), event1 -> {
+                if (messageFlag) {
+                    label.setText("У вас осталось: " + time[0]--);
+                    if (time[0] == -1)
+                        label.setText("Время вышло");
+                    if (time[0] == -1) {
+                        time[0] = 10;
+                        //Connect.sendRequest("Move", null);
+                        //messageFlag = false;
+                    }
+                }
+            }));
+            timer.setCycleCount(11);
+            timer.playFromStart();
         }
         ExecutorService service = Executors.newFixedThreadPool(1);
-        ServerMessageTask task = new ServerMessageTask(server);
+        ServerMessageTask task = new ServerMessageTask();
         task.setOnSucceeded(this);
         service.submit(task);
     }
@@ -132,23 +171,66 @@ public class ServerMessageHandler implements EventHandler<WorkerStateEvent> {
         }
     }
 
-    private void simpleCall(ServerMessage message) {
+    private void simpleCall(ServerMessage message) throws InterruptedException {
         maze = message.getMaze();
-        messageFlag = message.amIGoingNow();
+        messageFlag = false;
         //delete old positions another players
         for (ImageView image : anotherPlayers) {
             rootLayout.getChildren().remove(image);
         }
         anotherPlayers.clear();
         //change my position
-        if (human.getX() != maze.getFirstPlayer().getX() * coefficient || human.getY() != maze.getFirstPlayer().getY() * coefficient) {
-            Line path = new Line(human.getX() + coefficient * 0.5, human.getY() + coefficient * 0.5, maze.getFirstPlayer().getX() * coefficient + coefficient * 0.5, maze.getFirstPlayer().getY() * coefficient + coefficient * 0.5);
-            PathTransition pathTransition = new PathTransition(Duration.seconds(1), path, human);
+        if (human.getX() != maze.getFirstPlayer().getX() * coefficient && human.getX() + coefficient != maze.getFirstPlayer().getX() * coefficient && human.getX() - coefficient != maze.getFirstPlayer().getX() * coefficient) {
+            System.out.println("Fade");//todo
+            FadeTransition fadeTransition = new FadeTransition();
+            fadeTransition.setNode(human);
+            fadeTransition.setFromValue(1.);
+            fadeTransition.setToValue(0.);
+            fadeTransition.setDuration(Duration.seconds(1));
+            fadeTransition.play();
+            fadeTransition.setOnFinished((w) -> {
+                human.setX(maze.getFirstPlayer().getX() * coefficient);
+                human.setY(maze.getFirstPlayer().getY() * coefficient);
+                FadeTransition fadeTransition2 = new FadeTransition();
+                fadeTransition2.setNode(human);
+                fadeTransition2.setFromValue(0.);
+                fadeTransition2.setToValue(1.);
+                fadeTransition2.setDuration(Duration.seconds(1));
+                fadeTransition2.setOnFinished((a) -> {
+                    updateCoverMaze();
+                    updateIcon();
+                    messageFlag = message.amIGoingNow();
+                });
+                fadeTransition2.play();
+            });
+
+        } else if (human.getX() != maze.getFirstPlayer().getX() * coefficient
+                || human.getY() != maze.getFirstPlayer().getY() * coefficient) {
+            Line path = new Line(human.getX() + coefficient * 0.5,
+                    human.getY() + coefficient * 0.5,
+                    maze.getFirstPlayer().getX() * coefficient + coefficient * 0.5,
+                    maze.getFirstPlayer().getY() * coefficient + coefficient * 0.5);
+            PathTransition pathTransition = new PathTransition(Duration.seconds(0.5), path, human);
             pathTransition.play();
+            human.setX(maze.getFirstPlayer().getX() * coefficient);
+            human.setY(maze.getFirstPlayer().getY() * coefficient);
+            pathTransition.setOnFinished((w) -> {
+                updateCoverMaze();
+                updateIcon();
+                System.out.println("Update flag "+ human.getX()/coefficient + " " + human.getY()/coefficient);//todo
+                messageFlag = message.amIGoingNow();
+            });
+        } else {
+            human.setX(maze.getFirstPlayer().getX() * coefficient);
+            human.setY(maze.getFirstPlayer().getY() * coefficient);
+            updateCoverMaze();
+            updateIcon();
+            messageFlag = message.amIGoingNow();
         }
-        human.setX(maze.getFirstPlayer().getX() * coefficient);
-        human.setY(maze.getFirstPlayer().getY() * coefficient);
-        updateCoverMaze();
+
+    }
+
+    private void updateIcon() {
         //update icon in bag
         if (maze.getFirstPlayer().contains("Key")) {
             key.setVisible(true);
@@ -192,9 +274,7 @@ public class ServerMessageHandler implements EventHandler<WorkerStateEvent> {
 
     private void updateCoverMaze() {
         //delete line
-        for (Line line : lines) {
-            rootLayout.getChildren().remove(line);
-        }
+        rootLayout.getChildren().removeIf(node -> node instanceof Line && node.getId() == null);
         //draw line
         for (Field field : maze.getCover().getCov()) {
             Line up = new Line(field.getX() * coefficient, field.getY() * coefficient, field.getX() * coefficient + coefficient, field.getY() * coefficient);
@@ -217,10 +297,6 @@ public class ServerMessageHandler implements EventHandler<WorkerStateEvent> {
                 right.setOpacity(.2);
                 right.getStrokeDashArray().addAll(10., 5.);
             }
-            lines.add(up);
-            lines.add(down);
-            lines.add(left);
-            lines.add(right);
             rootLayout.getChildren().add(up);
             rootLayout.getChildren().add(down);
             rootLayout.getChildren().add(left);
@@ -232,8 +308,6 @@ public class ServerMessageHandler implements EventHandler<WorkerStateEvent> {
         maze = message.getMaze();
         messageFlag = message.amIGoingNow();
         coefficient = rootLayout.getHeight() / maze.getSize();
-        rootLayout.getChildren().add(new Line(rootLayout.getHeight(), 0, rootLayout.getHeight(), rootLayout.getHeight()));
-        rootLayout.getChildren().add(new Line(rootLayout.getHeight(), 0, rootLayout.getHeight(), rootLayout.getHeight()));
         human = (ImageView) findElementByID("human", rootLayout);
         setDefaultSizeImage(human);
         human.setVisible(true);
@@ -253,24 +327,7 @@ public class ServerMessageHandler implements EventHandler<WorkerStateEvent> {
         key.setFitWidth(rootLayout.getHeight() / 6);
         key.setX(rootLayout.getHeight() + (rootLayout.getWidth() - rootLayout.getHeight()) / 2 + ((rootLayout.getWidth() - rootLayout.getHeight()) / 2 - key.getFitWidth()) / 2);
         key.setY(rootLayout.getHeight() / 3);
-        ImageView bag = (ImageView) findElementByID("bag", rootLayout);
-        bag.setFitHeight(rootLayout.getHeight() / 3);
-        bag.setFitWidth(rootLayout.getHeight() / 3);
-        bag.setX(rootLayout.getHeight() + (rootLayout.getWidth() - rootLayout.getHeight() - bag.getFitWidth()) / 1.8);
-        bag.setY(rootLayout.getHeight() / 6 * 0.05);
-        bag.setVisible(true);
-        Button button = (Button) findElementByID("menu", rootLayout);
-        button.setPrefWidth(rootLayout.getWidth() - rootLayout.getHeight());
-        button.setPrefHeight(rootLayout.getHeight() / 6);
-        button.setLayoutX(rootLayout.getHeight());
-        button.setLayoutY(rootLayout.getHeight() - rootLayout.getHeight() / 6);
-        button.setVisible(true);
-        TextArea infTextArea = (TextArea) findElementByID("infTextArea", rootLayout);
-        infTextArea.setPrefWidth(rootLayout.getWidth() - rootLayout.getHeight());
-        infTextArea.setPrefHeight(rootLayout.getHeight() / 6);
-        infTextArea.setLayoutX(rootLayout.getHeight());
-        infTextArea.setLayoutY(rootLayout.getHeight() - 2 * rootLayout.getHeight() / 6);
-        infTextArea.setVisible(true);
+        label = (Label) findElementByID("infLabel", rootLayout);
         updateCoverMaze();
     }
 

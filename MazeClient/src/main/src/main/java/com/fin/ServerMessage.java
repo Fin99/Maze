@@ -21,7 +21,7 @@ public class ServerMessage {
         return maze;
     }
 
-    public boolean amIGoingNow() {
+    public Boolean amIGoingNow() {
         return amIGoingNow;
     }
 

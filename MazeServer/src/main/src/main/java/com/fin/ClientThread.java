@@ -24,7 +24,6 @@ public class ClientThread extends Thread implements Serializable {
             os = new DataOutputStream(client.getOutputStream());
             is = new DataInputStream(client.getInputStream());
             this.client = client;
-            System.out.println("Подключен клиент..." + client.getInetAddress() + ":" + client.getPort());
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -36,24 +35,7 @@ public class ClientThread extends Thread implements Serializable {
             connect();
             while (true) {
                 synchronized (server) {
-                    if (server.playerMoveNow.equals(client)) {
-                        String typeRequest = (String) readFromByteArray(is);
-                        if (typeRequest.equals("Move")) {
-                            move();
-                        } else if (typeRequest.equals("Shot")) {
-                            shot();
-                        } else if (typeRequest.equals("Update maze")) {
-                            server.updateMaze.replace(client, true);
-                            allUpdateMaze();
-                            move();
-                        }
-                        try {
-                            server.notify();
-                            server.wait();
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                    }
+                    processRequest();
                 }
             }
         } catch (IOException e) {
@@ -61,11 +43,69 @@ public class ClientThread extends Thread implements Serializable {
         }
     }
 
+    private void processRequest() throws IOException {
+        if (server.playerMoveNow.equals(client)) {
+            String typeRequest = (String) readFromByteArray(is);
+            if (typeRequest.equals("Move")) {
+                move();
+            } else if (typeRequest.equals("Shot")) {
+                shot();
+            } else if (typeRequest.equals("Update maze")) {
+                server.updateMaze.replace(client, true);
+                checkAndUpdateMaze();
+                move();
+            }
+            try {
+                server.notify();
+                server.wait();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
     private void move() throws IOException {
         Direction direction = (Direction) readFromByteArray(is);
         server.maze.go(direction, idPlayer);
+        Player player = null;
+        for (Player pl : server.maze.getPlayers()) {
+            if (pl.getId() == idPlayer) player = pl;
+        }
+        if (player.getX() == server.mazeSize - 1 && player.getY() == server.mazeSize - 1 && player.contains("Key")) {
+            win();
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            updateMaze();
+            processRequest();
+        }
         nextPlayer();
         updatePlayers();
+    }
+
+    private void win() {
+        synchronized (server) {
+            Socket disconnect = null;
+            try {
+                for (Socket player : server.playersSocket) {
+                    disconnect = player;
+                    DataOutputStream os = new DataOutputStream(player.getOutputStream());
+                    writeToByteArray(os, null);
+                    if (server.playersId.get(server.playersSocket.indexOf(player)) == idPlayer) {
+                        writeToByteArray(os, true);
+                    } else {
+                        writeToByteArray(os, false);
+                    }
+                    writeToByteArray(os, null);
+                    writeToByteArray(os, null);
+
+                }
+            } catch (IOException e) {
+                System.err.println("Player disconnected (" + disconnect.getInetAddress() + ":" + disconnect.getPort() + ")");
+            }
+        }
     }
 
     private void shot() throws IOException {
@@ -79,10 +119,14 @@ public class ClientThread extends Thread implements Serializable {
         updatePlayers(player, position);
     }
 
-    private void allUpdateMaze() {
+    private void checkAndUpdateMaze() {
         for (Boolean vote : server.updateMaze.values()) {
             if (!vote) return;
         }
+        updateMaze();
+    }
+
+    private void updateMaze() {
         server.maze = MazeImplDefault.generateMaze(server.mazeSize);
         List<Player> players = new ArrayList<>();
         for (int i = 0; i < server.playersId.size(); i++) {
@@ -92,7 +136,6 @@ public class ClientThread extends Thread implements Serializable {
         server.maze.addAllPlayer(players);
         server.iteratorPlayers = server.playersSocket.iterator();
         server.playerMoveNow = server.iteratorPlayers.next();
-
     }
 
     private void deletePlayer() {
@@ -112,15 +155,17 @@ public class ClientThread extends Thread implements Serializable {
                 if (server.playersSocket.size() < server.maxClient) {
                     server.playersSocket.add(client);
                     server.iteratorPlayers = server.playersSocket.iterator();
-                    server.playerMoveNow = server.iteratorPlayers.next();
                     Maze start = server.maze.start(0, 0);
                     idPlayer = start.getFirstPlayer().getId();
                     server.playersId.add(idPlayer);
                     server.updateMaze.put(client, false);
+                    nextPlayer();
                     writeToByteArray(os, start);
                     writeToByteArray(os, server.playerMoveNow.equals(client));
                     writeToByteArray(os, null);
                     writeToByteArray(os, null);
+                    updatePlayers();
+                    System.out.println("Подключен клиент..." + client.getInetAddress() + ":" + client.getPort());
                     return;
                 }
             }
@@ -173,6 +218,7 @@ public class ClientThread extends Thread implements Serializable {
                 server.iteratorPlayers = server.playersSocket.iterator();
                 server.playerMoveNow = server.iteratorPlayers.next();
             }
+            System.out.println(server.playerMoveNow.getPort());//
         }
     }
 

@@ -7,6 +7,7 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.effect.Blend?>
 <?import javafx.scene.text.Font?>
+<?import javafx.scene.control.Label?>
 <AnchorPane fx:id="root" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0"
             prefWidth="800.0" xmlns="http://javafx.com/javafx/9.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.fin.Controller">
     <children>
@@ -68,7 +69,7 @@
         </ImageView>
     </children>
     <children>
-        <TextArea fx:id="infTextArea" disable="true" editable="false" layoutX="600.0" layoutY="300.0" prefHeight="200.0"
+        <Label fx:id="infLabel" disable="true" layoutX="600.0" layoutY="300.0" prefHeight="200.0"
                   prefWidth="200.0" visible="false" style="-fx-focus-color: transparent"/>
     </children>
     <children>
