@@ -1,0 +1,311 @@
+package com.fin;
+
+import com.fin.game.cover.Direction;
+import com.fin.game.maze.Maze;
+import com.fin.game.maze.MazeImplDefault;
+import com.fin.game.player.Player;
+import com.fin.game.player.Position;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import java.io.*;
+import java.net.Socket;
+import java.util.ArrayList;
+import java.util.List;
+
+//todo handle situation when server space is over
+public class ClientThread extends Thread implements Serializable {
+    //logger
+    private final Logger logger = LogManager.getRootLogger();
+    //
+
+    private final Server server;
+    private DataOutputStream os;
+    private DataInputStream is;
+    private Socket client;
+    private int idPlayer;
+
+    ClientThread(Socket client, Server server) {
+        logger.info("Create new ClientThread(" + client.getInetAddress().getHostAddress() + ":" + client.getPort());
+        this.server = server;
+        try {
+            os = new DataOutputStream(client.getOutputStream());
+            is = new DataInputStream(client.getInputStream());
+            this.client = client;
+        } catch (IOException e) {
+            logger.fatal("Exception occurred when establishing communication with the client.");
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void run() {
+        logger.info("Start ClientThread");
+        try {
+            connect();
+            while (true) {
+                synchronized (server) {
+                    processRequest();
+                }
+            }
+        } catch (IOException e) {
+            deletePlayer();
+        }
+    }
+
+    private void processRequest() throws IOException {
+        logger.info("Thread is waking up");
+        if (server.playerMoveNow.equals(client)) {
+            logger.info("Processing of message from client...");
+            ClientMessage message = (ClientMessage) readFromByteArray(is);
+            logger.info("Type message from client - " + message.getType());
+            if (message.getType().equals("Move")) {
+                move(message.getDirection());
+            } else if (message.getType().equals("Shot")) {
+                shot(message.getDirection());
+            } else if (message.getType().equals("Update maze")) {
+                server.updateMaze.replace(client, true);
+                checkAndUpdateMaze();
+            }
+            logger.info("Processing of message is finished");
+            try {
+                server.notify();
+                logger.info("Thread is waiting");
+                server.wait();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private void move(Direction direction) {
+        logger.info("Start move");
+        Player player = null;
+        for (Player pl : server.maze.getPlayers()) {
+            if (pl.getId() == idPlayer) player = pl;
+        }
+        if (player == null) {
+            logger.fatal("Player not found in maze");
+        } else {
+            Position startPosition = player.getPosition();
+            server.maze.go(direction, idPlayer);
+            Position finishPosition = player.getPosition();
+            if (player.getX() == server.mazeSize - 1 && player.getY() == server.mazeSize - 1 && player.contains("Key")) {
+                logger.info("Player is winner");
+                win();
+            }
+            nextPlayer();
+            notifyAboutMovePlayers(direction, startPosition, finishPosition);
+            logger.info("Finish move");
+        }
+    }
+
+    //todo
+    private void win() {
+        synchronized (server) {
+            Socket disconnect = null;
+            try {
+                for (Socket player : server.playersSocket) {
+                    disconnect = player;
+                    DataOutputStream os = new DataOutputStream(player.getOutputStream());
+                    writeToByteArray(os, null);
+                    if (server.playersId.get(server.playersSocket.indexOf(player)) == idPlayer) {
+                        writeToByteArray(os, true);
+                    } else {
+                        writeToByteArray(os, false);
+                    }
+                    writeToByteArray(os, null);
+                    writeToByteArray(os, null);
+
+                }
+            } catch (IOException e) {
+                System.err.println("Player disconnected (" + disconnect.getInetAddress() + ":" + disconnect.getPort() + ")");
+            }
+        }
+    }
+
+    private void shot(Direction direction) {
+        logger.info("Start shot");
+        Player player = null;
+        for (Player p : server.maze.getPlayers()) {
+            if (p.getId() == idPlayer) player = p;
+        }
+        if (player == null) {
+            logger.fatal("Player not found in maze");
+        } else {
+            Position startPosition = player.getPosition();
+            nextPlayer();
+            Position finishPosition = server.maze.shot(idPlayer, direction);
+            notifyAboutShotPlayers(direction, startPosition, finishPosition);
+        }
+        logger.info("Finish shot");
+    }
+    //todo
+
+    private void checkAndUpdateMaze() {
+        for (Boolean vote : server.updateMaze.values()) {
+            if (!vote) return;
+        }
+        updateMaze();
+    }
+    //todo
+
+    private void updateMaze() {
+        server.maze = MazeImplDefault.generateMaze(server.mazeSize);
+        List<Player> players = new ArrayList<>();
+        for (int i = 0; i < server.playersId.size(); i++) {
+            Player player = new Player(i, i, server.mazeSize, server.playersId.get(i));
+            players.add(player);
+        }
+        server.maze.addAllPlayer(players);
+        server.iteratorPlayers = server.playersSocket.iterator();
+        server.playerMoveNow = server.iteratorPlayers.next();
+    }
+    //todo
+
+    private void deletePlayer() {
+        synchronized (server) {
+            server.playersId.remove(idPlayer);
+            server.iteratorPlayers.remove();
+            nextPlayer();
+            //updatePlayers();
+            server.maze.deletePlayer(idPlayer);
+        }
+
+    }
+
+    private void connect() throws IOException {
+        while (true) {
+            synchronized (server) {
+                logger.info("Catch monitor");
+                if (server.playersSocket.size() < server.maxClient) {
+                    logger.info("Server have free space");
+                    server.playersSocket.add(client);
+                    server.iteratorPlayers = server.playersSocket.iterator();
+                    logger.info("Player added on server");
+                    Maze start = server.maze.start(0, 0);
+                    idPlayer = start.getFirstPlayer().getId();
+                    logger.info("Player added in maze. PlayerID - " + idPlayer);
+                    server.playersId.add(idPlayer);
+                    server.updateMaze.put(client, false);
+                    nextPlayer();
+                    ServerMessage message = new ServerMessage("Resize",
+                            start,
+                            server.playerMoveNow.equals(client),
+                            null, null, null, null);
+                    writeToByteArray(os, message);
+                    notifyAboutAddedNewPlayer();
+                    return;
+                }
+            }
+        }
+    }
+
+    private void notifyAboutAddedNewPlayer() {
+        logger.info("Notify all players about added new player");
+        Socket disconnect = null;
+        try {
+            for (Socket player : server.playersSocket) {
+                disconnect = player;
+                DataOutputStream os = new DataOutputStream(player.getOutputStream());
+                Integer playerID = server.playersId.get(server.playersSocket.indexOf(player));
+                ServerMessage serverMessage = new ServerMessage(null, server.maze.go(null, playerID), server.playerMoveNow.equals(player),
+                        null, null, null, null);
+                writeToByteArray(os, serverMessage);
+            }
+        } catch (IOException e) {
+            logger.error("Player disconnected (" + disconnect.getInetAddress() + ":" + disconnect.getPort() + ")");
+        }
+        logger.info("All players is notified");
+    }
+
+    private void notifyAboutMovePlayers(Direction direction, Position startPosition, Position finishPosition) {
+        logger.info("Notify all players about move player");
+        Socket disconnect = null;
+        try {
+            for (Socket player : server.playersSocket) {
+                disconnect = player;
+                DataOutputStream os = new DataOutputStream(player.getOutputStream());
+                Integer playerID = server.playersId.get(server.playersSocket.indexOf(player));
+                Player playerInMaze = null;
+                for (Player pl : server.maze.getPlayers()) {
+                    if (pl.getId() == idPlayer) playerInMaze = pl;
+                }
+                ServerMessage serverMessage = new ServerMessage("Move",
+                        server.maze.go(null, playerID),
+                        server.playerMoveNow.equals(player),
+                        playerInMaze,
+                        direction,
+                        startPosition, finishPosition);
+                writeToByteArray(os, serverMessage);
+            }
+        } catch (IOException e) {
+            logger.error("Player disconnected (" + disconnect.getInetAddress() + ":" + disconnect.getPort() + ")");
+        }
+        logger.info("All players is notified");
+    }
+
+    private void notifyAboutShotPlayers(Direction direction, Position startPosition, Position finishPosition) {
+        logger.info("Notify all players about shot player");
+        Socket disconnect = null;
+        try {
+            for (Socket player : server.playersSocket) {
+                disconnect = player;
+                DataOutputStream os = new DataOutputStream(player.getOutputStream());
+                Integer playerID = server.playersId.get(server.playersSocket.indexOf(player));
+                Player playerInMaze = null;
+                for (Player pl : server.maze.getPlayers()) {
+                    if (pl.getId() == idPlayer) playerInMaze = pl;
+                }
+                ServerMessage serverMessage = new ServerMessage("Shot",
+                        server.maze.go(null, playerID),
+                        server.playerMoveNow.equals(player),
+                        playerInMaze,
+                        direction,
+                        startPosition, finishPosition);
+                writeToByteArray(os, serverMessage);
+            }
+        } catch (IOException e) {
+            logger.error("Player disconnected (" + disconnect.getInetAddress() + ":" + disconnect.getPort() + ")");
+        }
+        logger.info("All players is notified");
+    }
+
+    private void nextPlayer() {
+        logger.info("Determined by the next player which will turn");
+        if (server.playersSocket.size() == 0) System.exit(0);
+        if (server.iteratorPlayers.hasNext()) {
+            server.playerMoveNow = server.iteratorPlayers.next();
+        } else {
+            server.iteratorPlayers = server.playersSocket.iterator();
+            server.playerMoveNow = server.iteratorPlayers.next();
+        }
+        logger.info("Player(" + client.getInetAddress().getHostAddress() + ":" + client.getPort() + ") turn right now");
+    }
+
+
+    public void writeToByteArray(DataOutputStream stream, Object element) throws IOException {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        ObjectOutputStream out = new ObjectOutputStream(baos);
+        out.writeObject(element);
+        byte[] buffObj = baos.toByteArray();
+        stream.writeInt(buffObj.length);
+        stream.write(buffObj);
+        stream.flush();
+    }
+
+    public Object readFromByteArray(DataInputStream stream) throws IOException {
+        int lengthBuff = stream.readInt();
+        byte[] buff = new byte[lengthBuff];
+        stream.readFully(buff, 0, lengthBuff);
+        ByteArrayInputStream bais = new ByteArrayInputStream(buff);
+        ObjectInputStream in = new ObjectInputStream(bais);
+        try {
+            return in.readObject();
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+}

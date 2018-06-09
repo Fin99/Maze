@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Rectangle2D?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.effect.Blend?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.text.Font?>
+<AnchorPane fx:id="root" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity"
+             xmlns="http://javafx.com/javafx/9.0.1" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.fin.controllers.MazeController">
+    <children>
+        <ImageView fx:id="human" pickOnBounds="true" preserveRatio="true"
+                   visible="false">
+            <image>
+                <Image url="@../images/human.png"/>
+            </image>
+        </ImageView>
+    </children>
+    <children>
+        <ImageView fx:id="monster" pickOnBounds="true" preserveRatio="true"
+                   visible="false">
+            <image>
+                <Image url="@../images/monster.png"/>
+            </image>
+        </ImageView>
+    </children>
+    <children>
+        <ImageView fx:id="keyInMaze" pickOnBounds="true" preserveRatio="true"
+                   visible="false">
+            <image>
+                <Image url="@../images/key.png"/>
+            </image>
+        </ImageView>
+    </children>
+    <children>
+        <ImageView fx:id="gunInMaze" pickOnBounds="true" preserveRatio="true"
+                   visible="false">
+            <image>
+                <Image url="@../images/gun.png"/>
+            </image>
+        </ImageView>
+    </children>
+    <children>
+        <ImageView fx:id="bag" pickOnBounds="true" preserveRatio="true" visible="false">
+            <image>
+                <Image url="@../images/bag.png"/>
+            </image>
+            <viewport>
+                <Rectangle2D/>
+            </viewport>
+        </ImageView>
+    </children>
+    <children>
+        <ImageView fx:id="gun" pickOnBounds="true"
+                   preserveRatio="true" visible="false">
+            <image>
+                <Image url="@../images/gun.png"/>
+            </image>
+        </ImageView>
+    </children>
+    <children>
+        <ImageView fx:id="key" pickOnBounds="true"
+                   preserveRatio="true" visible="false">
+            <image>
+                <Image url="@../images/key.png"/>
+            </image>
+        </ImageView>
+    </children>
+    <children>
+        <ImageView fx:id="bullet" pickOnBounds="true"
+                   preserveRatio="true" visible="false">
+            <image>
+                <Image url="@../images/bullet.png"/>
+            </image>
+        </ImageView>
+    </children>
+    <children>
+        <Label fx:id="infLabel" disable="true" visible="false" style="-fx-focus-color: transparent"/>
+    </children>
+    <children>
+        <Button fx:id="menu" mnemonicParsing="false" text="Меню" visible="false" textOverrun="CLIP"
+                style="-fx-focus-color: transparent; -fx-faint-focus-color: transparent">
+            <effect>
+                <Blend/>
+            </effect>
+            <font>
+                <Font name="Comic Sans MS" size="31.0"/>
+            </font>
+        </Button>
+    </children>
+</AnchorPane>
