@@ -3,6 +3,7 @@ package com.fin.game.player;
 import com.fin.game.cover.Cover;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 public class Player implements Serializable, Position {
     private int x;
@@ -41,6 +42,8 @@ public class Player implements Serializable, Position {
 
     public Position getPosition(){
         return new Position() {
+            int x = Player.this.x;
+            int y = Player.this.y;
             @Override
             public int getX() {
                 return x;
@@ -77,5 +80,21 @@ public class Player implements Serializable, Position {
 
     public Cover getStepList() {
         return stepList;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Player)) return false;
+        Player player = (Player) o;
+        return getX() == player.getX() &&
+                getY() == player.getY() &&
+                getId() == player.getId() &&
+                Objects.equals(backpack, player.backpack);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getX(), getY(), getId());
     }
 }

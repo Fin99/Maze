@@ -56,7 +56,7 @@ public class MazeController implements Initializable,
     Label infLabel;
 
     private Map<Player, ImageView> anotherPlayers;
-    private int playerID;
+    private int ourPlayerID;
     private double coefficient;
     private Line divisionLine;
 
@@ -129,7 +129,7 @@ public class MazeController implements Initializable,
     @Override
     public void handle(PlayersEvent playersEvent) {
         logger.info("Process PlayersEvent...");
-        playerID = playersEvent.getPlayers().get(0).getId();
+        ourPlayerID = playersEvent.getPlayers().get(0).getId();
         //delete all old players
         for (ImageView iv : anotherPlayers.values()) {
             if (iv == monster) {
@@ -144,7 +144,7 @@ public class MazeController implements Initializable,
             if (p.getId() == -1) {
                 anotherPlayers.put(p, monster);
                 monster.setVisible(true);
-            } else {
+            } else if (p.getId() != ourPlayerID) {
                 ImageView anotherPlayer = new ImageView(MazeController.class.getResource("/images/anotherPlayer.png").toString());
                 anotherPlayer.setFitHeight(coefficient);
                 anotherPlayer.setFitWidth(coefficient);
@@ -160,12 +160,12 @@ public class MazeController implements Initializable,
     public void handle(MoveEvent moveEvent) {
         logger.info("Process MoveEvent...");
         ImageView player;
-        if (playerID == moveEvent.getPlayer().getId()) {
+        if (ourPlayerID == moveEvent.getPlayer().getId()) {
             player = human;
         } else {
             player = anotherPlayers.get(moveEvent.getPlayer());
         }
-        logger.info("Type move is: "+moveEvent.getType());
+        logger.info("Type move is: " + moveEvent.getType());
         if (moveEvent.getType().equals("Fade")) {
             FadeTransition fadeTransition = new FadeTransition();
             fadeTransition.setNode(player);
@@ -185,7 +185,7 @@ public class MazeController implements Initializable,
                 fadeTransition2.setDuration(Duration.seconds(1));
                 logger.info("Start 2 part animation(faded)...");
                 fadeTransition2.play();
-                fadeTransition2.setOnFinished((w2)->{
+                fadeTransition2.setOnFinished((w2) -> {
                     logger.info("2 part animation(faded) is finished");
                 });
             });

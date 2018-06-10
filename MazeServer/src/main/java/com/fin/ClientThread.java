@@ -34,7 +34,6 @@ public class ClientThread extends Thread implements Serializable {
             this.client = client;
         } catch (IOException e) {
             logger.fatal("Exception occurred when establishing communication with the client.");
-            e.printStackTrace();
         }
     }
 
@@ -50,7 +49,6 @@ public class ClientThread extends Thread implements Serializable {
             }
         } catch (IOException e) {
             logger.error("Player disconnected");
-            e.printStackTrace();
             synchronized (server) {
                 deletePlayer();
             }
@@ -94,7 +92,15 @@ public class ClientThread extends Thread implements Serializable {
         } else {
             Position startPosition = player.getPosition();
             server.maze.go(direction, idPlayer);
+            for (Player pl : server.maze.getPlayers()) {
+                if (pl.getId() == idPlayer) player = pl;
+            }
             Position finishPosition = player.getPosition();
+            if (startPosition.getY() == finishPosition.getY() && startPosition.getX() == finishPosition.getX()) {
+                logger.info("Player(" + idPlayer + ") couldn't make a move out of the place(" + startPosition.getX() + ":" + startPosition.getY() + ")");
+            } else {
+                logger.info("Player(" + idPlayer + ") made a move into the place(" + finishPosition.getX() + ":" + finishPosition.getY() + ") from the place(" + startPosition.getX() + ":" + startPosition.getY() + ")");
+            }
             if (player.getX() == server.mazeSize - 1 && player.getY() == server.mazeSize - 1 && player.contains("Key")) {
                 logger.info("Player is winner");
                 win();
@@ -214,7 +220,7 @@ public class ClientThread extends Thread implements Serializable {
                 disconnect = player;
                 DataOutputStream os = new DataOutputStream(player.getOutputStream());
                 Integer playerID = server.playersId.get(server.playersSocket.indexOf(player));
-                ServerMessage serverMessage = new ServerMessage(null, server.maze.go(null, playerID), server.playerMoveNow.equals(player),
+                ServerMessage serverMessage = new ServerMessage("New player", server.maze.go(null, playerID), server.playerMoveNow.equals(player),
                         null, null, null, null);
                 writeToByteArray(os, serverMessage);
             }
@@ -236,7 +242,7 @@ public class ClientThread extends Thread implements Serializable {
                 for (Player pl : server.maze.getPlayers()) {
                     if (pl.getId() == idPlayer) playerInMaze = pl;
                 }
-                ServerMessage serverMessage = new ServerMessage("Move",
+                ServerMessage serverMessage = new ServerMessage(startPosition.getX() == finishPosition.getX() && startPosition.getY() == finishPosition.getY() ? null : "Move",
                         server.maze.go(null, playerID),
                         server.playerMoveNow.equals(player),
                         playerInMaze,

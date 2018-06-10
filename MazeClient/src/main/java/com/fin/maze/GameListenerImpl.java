@@ -1,8 +1,8 @@
 package com.fin.maze;
 
-import com.fin.ServerMessage;
 import com.fin.connects.ConnectObserver;
 import com.fin.connects.event.ServerEvent;
+import com.fin.game.cover.Cover;
 import com.fin.game.maze.Maze;
 import com.fin.game.player.Item;
 import com.fin.game.player.Player;
@@ -17,16 +17,20 @@ public class GameListenerImpl<T> implements GameListener<ServerEvent> {
     //logger
     private final Logger logger = LogManager.getRootLogger();
     //
-    private ServerMessage oldMessage;
+
+    private Cover cover;
+    private List<Player> players;
+    private Player ourPlayer;
+
 
     //process message from server
     @Override
     public void handle(ServerEvent serverEvent) {
-        logger.info("Process serverEvent...");
+        logger.info("Process ServerEvent...");
         //full update game
-        if (serverEvent.getMessage().getType().equals("Resize")) {
+        if (serverEvent.getMessage().getType() != null && serverEvent.getMessage().getType().equals("Resize")) {
             logger.info("Start resize maze");
-            oldMessage = serverEvent.getMessage();
+            saveStatement(serverEvent.getMessage().getMaze().getCover(), serverEvent.getMessage().getMaze().getPlayers(), serverEvent.getMessage().getMaze().getFirstPlayer());
             logger.info("Process resize maze. Chapter 1: creating and processing ResizeEvent, MazeEvent, Players Event");
             MazeObserver.processResizeEvent(new ResizeEvent(serverEvent.getMessage().getMaze().getSize()));
             MazeObserver.processMazeEvent(new MazeEvent(serverEvent.getMessage().getMaze().getCover()));
@@ -51,19 +55,19 @@ public class GameListenerImpl<T> implements GameListener<ServerEvent> {
             return;
         }
         //update playing field
-        if (oldMessage == null || !serverEvent.getMessage().getMaze().getCover().equals(oldMessage.getMaze().getCover())) {
+        if (serverEvent.getMessage().getMaze().getCover() != null && (cover == null || !cover.equals(serverEvent.getMessage().getMaze().getCover()))) {
             logger.info("Start update maze");
             MazeObserver.processMazeEvent(new MazeEvent(serverEvent.getMessage().getMaze().getCover()));
             logger.info("Finish update maze");
         }
         //update players on playing field
-        if (oldMessage == null || !serverEvent.getMessage().getMaze().getPlayers().equals(oldMessage.getMaze().getPlayers())) {
+        if (serverEvent.getMessage().getMaze().getPlayers() != null && (players == null || !playersEquals(players, (serverEvent.getMessage().getMaze().getPlayers())))) {
             logger.info("Start update players");
             MazeObserver.processPlayersEvent(new PlayersEvent(serverEvent.getMessage().getMaze().getPlayers()));
             logger.info("Finish update players");
         }
         //update icon key and gun on playing field and in bag our player
-        if (oldMessage == null || !serverEvent.getMessage().getMaze().getFirstPlayer().equals(oldMessage.getMaze().getFirstPlayer())) {
+        if (serverEvent.getMessage().getMaze().getFirstPlayer() != null && (ourPlayer == null || !ourPlayer.equals(serverEvent.getMessage().getMaze().getFirstPlayer()))) {
             logger.info("Start update inventory");
             Player player = serverEvent.getMessage().getMaze().getFirstPlayer();
             Maze maze = serverEvent.getMessage().getMaze();
@@ -82,7 +86,7 @@ public class GameListenerImpl<T> implements GameListener<ServerEvent> {
             logger.info("TurnEvent(" + serverEvent.getMessage().getMove() + ") was creating");
         }
         //turn on animation shot
-        if (serverEvent.getMessage().getType().equals("Shot")) {
+        if (serverEvent.getMessage().getType() != null && serverEvent.getMessage().getType().equals("Shot")) {
             logger.info("Start shot");
             MazeObserver.processShotEvent(new ShotEvent(
                     serverEvent.getMessage().getStartPosition(), serverEvent.getMessage().getFinishPosition(),
@@ -90,7 +94,7 @@ public class GameListenerImpl<T> implements GameListener<ServerEvent> {
             logger.info("Finish shot");
         }
         //turn on animation move
-        if (serverEvent.getMessage().getType().equals("Move")) {
+        if (serverEvent.getMessage().getType() != null && serverEvent.getMessage().getType().equals("Move")) {
             logger.info("Start move player");
             MazeObserver.processMoveEvent(new MoveEvent(
                     serverEvent.getMessage().getType(),
@@ -100,8 +104,21 @@ public class GameListenerImpl<T> implements GameListener<ServerEvent> {
             logger.info("Finish move player");
         }
         //todo add TextEvent associated with infLabel
-        oldMessage = serverEvent.getMessage();
-        logger.info("OldMessage was update. Process ServerEvent is finished");
+        saveStatement(serverEvent.getMessage().getMaze().getCover(), serverEvent.getMessage().getMaze().getPlayers(), serverEvent.getMessage().getMaze().getFirstPlayer());
+        logger.info("Statement was update. Process ServerEvent is finished");
+    }
+
+    private boolean playersEquals(List<Player> players, List<Player> players1) {
+        logger.info("Start players comparison");
+        if (players == null || players1 == null) {
+            logger.info("");
+            return false;
+        }
+        if (players.size() != players1.size()) return false;
+        for (int i = 0; i < players.size(); i++) {
+            if (!players.get(i).equals(players1.get(i))) return false;
+        }
+        return true;
     }
 
     //check contains item with that name in this list
@@ -112,5 +129,11 @@ public class GameListenerImpl<T> implements GameListener<ServerEvent> {
             }
         }
         return false;
+    }
+
+    private void saveStatement(Cover cover, List<Player> players, Player ourPlayer) {
+        if (cover != null) this.cover = cover;
+        if (players != null) this.players = players;
+        if (ourPlayer != null) this.ourPlayer = ourPlayer;
     }
 }

@@ -2,6 +2,8 @@ package com.fin.game.cover;
 
 import java.io.Serializable;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Objects;
 import java.util.Set;
 
 public class Cover implements Serializable {
@@ -18,7 +20,7 @@ public class Cover implements Serializable {
         }
     }
 
-    public Cover(Set<Field> cov){
+    public Cover(Set<Field> cov) {
         this.cov = cov;
         size = (int) Math.sqrt(cov.size());
     }
@@ -38,5 +40,20 @@ public class Cover implements Serializable {
 
     public Set<Field> getCov() {
         return cov;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Cover)) return false;
+        Cover cover = (Cover) o;
+        if (size != cover.size) return false;
+        if (cov.size() != cover.getCov().size()) return false;
+        Iterator<Field> covI = cov.iterator();
+        Iterator<Field> coverI = cover.getCov().iterator();
+        while (covI.hasNext()) {
+            if (!covI.next().equals(coverI.next())) return false;
+        }
+        return true;
     }
 }

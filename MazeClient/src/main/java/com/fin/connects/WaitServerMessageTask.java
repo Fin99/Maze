@@ -13,21 +13,12 @@ import org.apache.logging.log4j.Logger;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class WaitServerMessageTask extends Task<ServerMessage> implements ReplacementConnectListener, EventHandler<WorkerStateEvent> {
+public class WaitServerMessageTask implements ReplacementConnectListener, EventHandler<WorkerStateEvent> {
     //logger
     private final Logger logger = LogManager.getRootLogger();
     //
     private Connect server;
 
-    {
-        setOnSucceeded(this);
-    }
-
-    @Override
-    public ServerMessage call() throws Exception {
-        logger.info("WaitServerMessageTask is launched");
-        return (ServerMessage) server.waitResponse();
-    }
 
     @Override
     public void handle(ReplacementConnectEvent replacementConnectEvent) {
@@ -35,18 +26,33 @@ public class WaitServerMessageTask extends Task<ServerMessage> implements Replac
         server = replacementConnectEvent.getConnect();
         logger.info("(WaitServerMessageTask)Link on server changed. Process is finished");
         ExecutorService service = Executors.newFixedThreadPool(1);
-        service.submit(this);
+        service.submit(new Waiting());
     }
 
     //restart Task
     @Override
     public void handle(WorkerStateEvent event) {
         logger.info("Processing of the received message...");
-        this.cancelled();
-        ExecutorService service = Executors.newFixedThreadPool(1);
-        service.submit(this);
         logger.info("Create new ServerEvent");
-        MazeObserver.processServerEvent(new ServerEvent((ServerMessage) event.getSource().getValue()));
-        logger.info("Process of the received message is passed on");
+        ServerMessage message = (ServerMessage) event.getSource().getValue();
+        if(message==null){
+            logger.fatal("Received message is null");
+        }
+        MazeObserver.processServerEvent(new ServerEvent(message));
+        logger.info("Restart waiting");
+        ExecutorService service = Executors.newFixedThreadPool(1);
+        service.submit(new Waiting());
+    }
+
+    private class Waiting extends Task<ServerMessage> {
+        @Override
+        public ServerMessage call() throws Exception {
+            logger.info("WaitServerMessageTask is launched");
+            return (ServerMessage) server.waitResponse();
+        }
+
+        {
+            setOnSucceeded(WaitServerMessageTask.this);
+        }
     }
 }
