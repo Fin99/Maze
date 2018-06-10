@@ -39,7 +39,6 @@ public class SendTurnPlayer implements ReplacementConnectListener, TurnListener,
         ClientMessage clientMessage = null;
         if (move) {
             logger.info("Check. Is pressed key valid?");
-            move = false;
             switch (event.getCode()) {
                 case RIGHT:
                     clientMessage = new ClientMessage("Shot", Direction.RIGHT);
@@ -70,6 +69,7 @@ public class SendTurnPlayer implements ReplacementConnectListener, TurnListener,
             logger.info("Player can`t move now");
         }
         if (clientMessage != null) {
+            move = false;
             server.sendRequest(clientMessage);
             logger.info("Message from server sent. Properties: type - " + clientMessage.getType() + ", direction - " + clientMessage.getDirection().name());
         }

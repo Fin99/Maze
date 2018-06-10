@@ -26,7 +26,7 @@ public class ClientThread extends Thread implements Serializable {
     private int idPlayer;
 
     ClientThread(Socket client, Server server) {
-        logger.info("Create new ClientThread(" + client.getInetAddress().getHostAddress() + ":" + client.getPort());
+        logger.info("Create new ClientThread(" + client.getInetAddress().getHostAddress() + ":" + client.getPort() + ")");
         this.server = server;
         try {
             os = new DataOutputStream(client.getOutputStream());
@@ -49,15 +49,20 @@ public class ClientThread extends Thread implements Serializable {
                 }
             }
         } catch (IOException e) {
-            deletePlayer();
+            logger.error("Player disconnected");
+            e.printStackTrace();
+            synchronized (server) {
+                deletePlayer();
+            }
         }
     }
 
     private void processRequest() throws IOException {
         logger.info("Thread is waking up");
         if (server.playerMoveNow.equals(client)) {
-            logger.info("Processing of message from client...");
+            logger.info("Waiting of message from client...");
             ClientMessage message = (ClientMessage) readFromByteArray(is);
+            logger.info("Message received.Processing of message from client...");
             logger.info("Type message from client - " + message.getType());
             if (message.getType().equals("Move")) {
                 move(message.getDirection());
@@ -148,8 +153,8 @@ public class ClientThread extends Thread implements Serializable {
         }
         updateMaze();
     }
-    //todo
 
+    //todo
     private void updateMaze() {
         server.maze = MazeImplDefault.generateMaze(server.mazeSize);
         List<Player> players = new ArrayList<>();
@@ -161,20 +166,19 @@ public class ClientThread extends Thread implements Serializable {
         server.iteratorPlayers = server.playersSocket.iterator();
         server.playerMoveNow = server.iteratorPlayers.next();
     }
+
     //todo
-
     private void deletePlayer() {
-        synchronized (server) {
-            server.playersId.remove(idPlayer);
-            server.iteratorPlayers.remove();
-            nextPlayer();
-            //updatePlayers();
-            server.maze.deletePlayer(idPlayer);
-        }
-
+        server.playersId.remove(idPlayer);
+        server.iteratorPlayers.remove();
+        logger.info("Player is removed from the maze and server list");
+        nextPlayer();
+        //updatePlayers();
+        server.maze.deletePlayer(idPlayer);
     }
 
     private void connect() throws IOException {
+        logger.info("Start connect");
         while (true) {
             synchronized (server) {
                 logger.info("Catch monitor");
@@ -195,6 +199,7 @@ public class ClientThread extends Thread implements Serializable {
                             null, null, null, null);
                     writeToByteArray(os, message);
                     notifyAboutAddedNewPlayer();
+                    logger.info("Connect is finished");
                     return;
                 }
             }
@@ -273,7 +278,10 @@ public class ClientThread extends Thread implements Serializable {
 
     private void nextPlayer() {
         logger.info("Determined by the next player which will turn");
-        if (server.playersSocket.size() == 0) System.exit(0);
+        if (server.playersSocket.size() == 0) {
+            logger.info("All players disconnected. Server shuts down");
+            System.exit(0);
+        }
         if (server.iteratorPlayers.hasNext()) {
             server.playerMoveNow = server.iteratorPlayers.next();
         } else {

@@ -39,6 +39,14 @@ public class GameListenerImpl<T> implements GameListener<ServerEvent> {
                     player.contains("Key"), player.contains("Gun"),
                     containsItem(maze.getItems(), "Key"), containsItem(maze.getItems(), "Gun")));
             logger.info("Process resize maze. Chapter 2 is finished.");
+            logger.info("Process resize maze. Chapter 3: creating TurnEvent");
+            logger.info("Start creating TurnEvent");
+            if (serverEvent.getMessage().getMove() == null) {
+                logger.fatal("ServerMessage.isMove() == null");
+            }
+            ConnectObserver.processTurnEvent(new TurnEvent(serverEvent.getMessage().getMove()));
+            logger.info("TurnEvent(" + serverEvent.getMessage().getMove() + ") was creating");
+            logger.info("Process resize maze. Chapter 3 is finished");
             logger.info("Finish resize maze");
             return;
         }

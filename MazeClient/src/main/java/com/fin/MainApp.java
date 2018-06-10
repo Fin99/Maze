@@ -54,8 +54,6 @@ public class MainApp extends Application {
             ConnectObserver.addSendTurnPlayer(sendTurnPlayer);
             WaitServerMessageTask waitServerMessageTask = new WaitServerMessageTask();
             ConnectObserver.addWaitServerMessageTask(waitServerMessageTask);
-            ExecutorService service = Executors.newFixedThreadPool(1);
-            service.submit(waitServerMessageTask);
             Scene scene = new Scene(rootLayout);
             primaryStage.setScene(scene);
             logger.info("Scene was installed");

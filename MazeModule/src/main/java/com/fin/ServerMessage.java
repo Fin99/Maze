@@ -5,7 +5,9 @@ import com.fin.game.maze.Maze;
 import com.fin.game.player.Player;
 import com.fin.game.player.Position;
 
-public class ServerMessage {
+import java.io.Serializable;
+
+public class ServerMessage implements Serializable {
     private final String type;
 
     private final Maze maze;

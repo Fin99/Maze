@@ -34,16 +34,19 @@ public class WaitServerMessageTask extends Task<ServerMessage> implements Replac
         logger.info("(WaitServerMessageTask)Process ReplacementConnectEvent...");
         server = replacementConnectEvent.getConnect();
         logger.info("(WaitServerMessageTask)Link on server changed. Process is finished");
+        ExecutorService service = Executors.newFixedThreadPool(1);
+        service.submit(this);
     }
 
     //restart Task
     @Override
     public void handle(WorkerStateEvent event) {
         logger.info("Processing of the received message...");
+        this.cancelled();
         ExecutorService service = Executors.newFixedThreadPool(1);
-        service.submit(new WaitServerMessageTask());
+        service.submit(this);
         logger.info("Create new ServerEvent");
-        MazeObserver.processServerEvent(new ServerEvent((ServerMessage) event.getSource()));
+        MazeObserver.processServerEvent(new ServerEvent((ServerMessage) event.getSource().getValue()));
         logger.info("Process of the received message is passed on");
     }
 }
