@@ -1,6 +1,7 @@
 package com.fin.connects;
 
 import com.fin.connects.event.ReplacementConnectEvent;
+import com.fin.connects.event.RestartGameEvent;
 import com.fin.turn.TurnEvent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -37,9 +38,14 @@ public class ConnectObserver {
 
     }
     
-    public static void processTurnEvent(TurnEvent turnEvent){
+    public static void processTurnEvent(TurnEvent event){
         logger.info("Processing of the TurnEvent is started");
-        sendTurnPlayer.handle(turnEvent);
+        sendTurnPlayer.handle(event);
+    }
+
+    public static void processRestartGameEvent(RestartGameEvent event){
+        logger.info("Proccessing of the RestartGameEvent is started");
+        sendTurnPlayer.handle(event);
     }
 }
 

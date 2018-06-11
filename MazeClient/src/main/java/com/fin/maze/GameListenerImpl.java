@@ -63,6 +63,7 @@ public class GameListenerImpl<T> implements GameListener<ServerEvent> {
                 logger.info("Player is loser");
                 MazeObserver.processEndGameEvent(new EndGameEvent(false));
             }
+            return;
         }
         //update playing field
         if (serverEvent.getMessage().getMaze().getCover() != null && (cover == null || !cover.equals(serverEvent.getMessage().getMaze().getCover()))) {

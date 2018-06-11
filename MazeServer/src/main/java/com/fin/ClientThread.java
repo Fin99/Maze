@@ -67,7 +67,8 @@ public class ClientThread extends Thread implements Serializable {
                 move(message.getDirection());
             } else if (message.getType().equals("Shot")) {
                 shot(message.getDirection());
-            } else if (message.getType().equals("Update maze")) {
+            } else if (message.getType().equals("Restart")) {
+                logger.info("Player("+idPlayer+") voted to update game");
                 server.updateMaze.replace(client, true);
                 checkAndUpdateMaze();
             }
@@ -105,9 +106,10 @@ public class ClientThread extends Thread implements Serializable {
             if (player.getX() == server.mazeSize - 1 && player.getY() == server.mazeSize - 1 && player.contains("Key")) {
                 logger.info("Player(" + idPlayer + ") is winner");
                 win();
+            } else {
+                nextPlayer();
+                notifyAboutMovePlayers(direction, startPosition, finishPosition);
             }
-            nextPlayer();
-            notifyAboutMovePlayers(direction, startPosition, finishPosition);
             logger.info("Finish move");
         }
     }
@@ -120,7 +122,7 @@ public class ClientThread extends Thread implements Serializable {
                 disconnect = player;
                 DataOutputStream os = new DataOutputStream(player.getOutputStream());
                 Integer playerID = server.playersId.get(server.playersSocket.indexOf(player));
-                ServerMessage serverMessage = new ServerMessage(playerID==idPlayer?"Win":"Lose",
+                ServerMessage serverMessage = new ServerMessage(playerID == idPlayer ? "Win" : "Lose",
                         null, null, null, null, null, null, null, null);
                 writeToByteArray(os, serverMessage);
             }
@@ -128,6 +130,7 @@ public class ClientThread extends Thread implements Serializable {
             logger.error("Player disconnected (" + disconnect.getInetAddress() + ":" + disconnect.getPort() + ")");
         }
         logger.info("All players is notified");
+        updateMaze();
     }
 
     private void shot(Direction direction) {
@@ -146,17 +149,18 @@ public class ClientThread extends Thread implements Serializable {
         }
         logger.info("Finish shot");
     }
-    //todo
 
     private void checkAndUpdateMaze() {
         for (Boolean vote : server.updateMaze.values()) {
             if (!vote) return;
         }
+        logger.info("Update game...");
         updateMaze();
     }
 
-    //todo
     private void updateMaze() {
+        logger.info("Server reload...");
+        logger.info("Server update maze...");
         server.maze = MazeImplDefault.generateMaze(server.mazeSize);
         List<Player> players = new ArrayList<>();
         for (int i = 0; i < server.playersId.size(); i++) {
@@ -166,6 +170,9 @@ public class ClientThread extends Thread implements Serializable {
         server.maze.addAllPlayer(players);
         server.iteratorPlayers = server.playersSocket.iterator();
         server.playerMoveNow = server.iteratorPlayers.next();
+        logger.info("Maze updated");
+        notifyAboutUpdateMaze();
+        logger.info("Server reloaded");
     }
 
     //todo
@@ -285,6 +292,27 @@ public class ClientThread extends Thread implements Serializable {
         logger.info("All players is notified");
     }
 
+    private void notifyAboutUpdateMaze() {
+        logger.info("Notify all players about update maze");
+        Socket disconnect = null;
+        try {
+            for (Socket player : server.playersSocket) {
+                disconnect = player;
+                DataOutputStream os = new DataOutputStream(player.getOutputStream());
+                Integer playerID = server.playersId.get(server.playersSocket.indexOf(player));
+                ServerMessage serverMessage = new ServerMessage("Resize", server.maze.go(null, playerID),
+                        server.playerMoveNow.equals(player),
+                        null, null, null, null,
+                        positionItem(server.maze.go(null, playerID).getItems(), "Key"),
+                        positionItem(server.maze.go(null, playerID).getItems(), "Gun"));
+                writeToByteArray(os, serverMessage);
+            }
+        } catch (IOException e) {
+            logger.error("Player disconnected (" + disconnect.getInetAddress() + ":" + disconnect.getPort() + ")");
+        }
+        logger.info("All players is notified");
+    }
+
     private void nextPlayer() {
         logger.info("Determined by the next player which will turn");
         if (server.playersSocket.size() == 0) {
@@ -301,6 +329,7 @@ public class ClientThread extends Thread implements Serializable {
     }
 
     //check contains item with that name in this list
+
     private Position positionItem(List<Item> items, String name) {
         for (Item i : items) {
             if (i.getName().equals(name)) {

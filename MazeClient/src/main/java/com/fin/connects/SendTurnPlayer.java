@@ -2,6 +2,7 @@ package com.fin.connects;
 
 import com.fin.ClientMessage;
 import com.fin.connects.event.ReplacementConnectEvent;
+import com.fin.connects.event.RestartGameEvent;
 import com.fin.game.cover.Direction;
 import com.fin.turn.TurnEvent;
 import com.fin.turn.TurnListener;
@@ -10,7 +11,7 @@ import javafx.scene.input.KeyEvent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-public class SendTurnPlayer implements ReplacementConnectListener, TurnListener, EventHandler<KeyEvent> {
+public class SendTurnPlayer implements ReplacementConnectListener, TurnListener, EventHandler<KeyEvent>, RestartGameListener {
     //logger
     private final Logger logger = LogManager.getRootLogger();
     //
@@ -32,7 +33,14 @@ public class SendTurnPlayer implements ReplacementConnectListener, TurnListener,
         logger.info("Move(boolean) = " + move + ". Processing of the TurnEvent is finished");
     }
 
+    @Override
+    public void handle(RestartGameEvent event) {
+        logger.info("Processing of the RestartGameEvent");
+        server.sendRequest(new ClientMessage("Restart", null));
+        logger.info("Processing of the RestartGameEvent is finished");
+    }
     //listen key
+
     @Override
     public void handle(KeyEvent event) {
         logger.info("Processing of the KeyEvent...");

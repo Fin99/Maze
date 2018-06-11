@@ -162,7 +162,10 @@ public class MazeController implements Initializable,
                 monster.setY(p.getY() * coefficient);
                 anotherPlayers.put(p, monster);
                 monster.setVisible(true);
-            } else if (p.getId() != ourPlayerID) {
+            } else if (p.getId() == ourPlayerID) {
+                human.setX(p.getX()*coefficient);
+                human.setY(p.getY()*coefficient);
+            } else {
                 ImageView anotherPlayer = new ImageView(MazeController.class.getResource("/images/anotherPlayer.png").toString());
                 anotherPlayer.setFitHeight(coefficient);
                 anotherPlayer.setFitWidth(coefficient);
