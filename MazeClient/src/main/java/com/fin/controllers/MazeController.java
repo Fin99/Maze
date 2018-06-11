@@ -83,15 +83,15 @@ public class MazeController implements Initializable,
                 + ". KeyInMaze = " + inventoryEvent.getKeyInMaze() +
                 ". Gun = " + inventoryEvent.getGun() +
                 ". Key = " + inventoryEvent.getKey());
-        if(inventoryEvent.getKeyInMazePosition()!=null){
-            keyInMaze.setX(inventoryEvent.getKeyInMazePosition().getX()*coefficient);
-            keyInMaze.setY(inventoryEvent.getKeyInMazePosition().getY()*coefficient);
-            logger.info("Key position changed. X:"+inventoryEvent.getKeyInMazePosition().getX()+" Y:"+inventoryEvent.getKeyInMazePosition().getY()+"");
+        if (inventoryEvent.getKeyInMazePosition() != null) {
+            keyInMaze.setX(inventoryEvent.getKeyInMazePosition().getX() * coefficient);
+            keyInMaze.setY(inventoryEvent.getKeyInMazePosition().getY() * coefficient);
+            logger.info("Key position changed. X:" + inventoryEvent.getKeyInMazePosition().getX() + " Y:" + inventoryEvent.getKeyInMazePosition().getY() + "");
         }
-        if(inventoryEvent.getGunInMazePosition()!=null){
-            gunInMaze.setX(inventoryEvent.getGunInMazePosition().getX()*coefficient);
-            gunInMaze.setY(inventoryEvent.getGunInMazePosition().getY()*coefficient);
-            logger.info("Gun position changed. X:"+inventoryEvent.getGunInMazePosition().getX()+" Y:"+inventoryEvent.getGunInMazePosition().getY()+"");
+        if (inventoryEvent.getGunInMazePosition() != null) {
+            gunInMaze.setX(inventoryEvent.getGunInMazePosition().getX() * coefficient);
+            gunInMaze.setY(inventoryEvent.getGunInMazePosition().getY() * coefficient);
+            logger.info("Gun position changed. X:" + inventoryEvent.getGunInMazePosition().getX() + " Y:" + inventoryEvent.getGunInMazePosition().getY() + "");
         }
         gunInMaze.setVisible(inventoryEvent.getGunInMaze());
         keyInMaze.setVisible(inventoryEvent.getKeyInMaze());
@@ -152,8 +152,8 @@ public class MazeController implements Initializable,
         //add new player and part old player
         for (Player p : playersEvent.getPlayers()) {
             if (p.getId() == -1) {
-                monster.setX(p.getX()*coefficient);
-                monster.setY(p.getY()*coefficient);
+                monster.setX(p.getX() * coefficient);
+                monster.setY(p.getY() * coefficient);
                 anotherPlayers.put(p, monster);
                 monster.setVisible(true);
             } else if (p.getId() != ourPlayerID) {
@@ -255,49 +255,54 @@ public class MazeController implements Initializable,
 
     @Override
     public void handle(ShotEvent shotEvent) {
-        logger.info("Process ShotEvent...");
-        bullet.setVisible(true);
-        Line path = null;
-        switch (shotEvent.getDirection()) {
-            case UP:
-                logger.info("Bullet will fly up");
-                bullet.setRotate(-90);
-                path = new Line(shotEvent.getStart().getX() * coefficient + coefficient * 0.5,
-                        shotEvent.getStart().getY() * coefficient - coefficient * 0.25,
-                        shotEvent.getFinish().getX() * coefficient + coefficient * 0.5,
-                        shotEvent.getFinish().getY() * coefficient + coefficient * 0.5);
-                break;
-            case DOWN:
-                logger.info("Bullet will fly down");
-                bullet.setRotate(90);
-                path = new Line(shotEvent.getStart().getX() * coefficient + coefficient * 0.5,
-                        shotEvent.getStart().getY() * coefficient + coefficient * 1.25,
-                        shotEvent.getFinish().getX() * coefficient + coefficient * 0.5,
-                        shotEvent.getFinish().getY() * coefficient + coefficient * 0.5);
-                break;
-            case LEFT:
-                bullet.setRotate(180);
-                path = new Line(shotEvent.getStart().getX() * coefficient,
-                        shotEvent.getStart().getY() * coefficient + coefficient * 0.5,
-                        shotEvent.getFinish().getX() * coefficient + coefficient * 0.5,
-                        shotEvent.getFinish().getY() * coefficient + coefficient * 0.5);
-                break;
-            case RIGHT:
-                logger.info("Bullet will fly right");
-                path = new Line(shotEvent.getStart().getX() * coefficient + coefficient,
-                        shotEvent.getStart().getY() * coefficient + coefficient * 0.5,
-                        shotEvent.getFinish().getX() * coefficient + coefficient * 0.5,
-                        shotEvent.getFinish().getY() * coefficient + coefficient * 0.5);
-                break;
+        if (shotEvent.getStart().getX() == shotEvent.getFinish().getX() && shotEvent.getStart().getY() == shotEvent.getFinish().getY()) {
+            logger.info("Gunshot's impossible. Character to be near the wall.");
+        } else {
+            logger.info("Process ShotEvent...");
+            bullet.setVisible(true);
+            Line path = null;
+            switch (shotEvent.getDirection()) {
+                case UP:
+                    logger.info("Bullet will fly up");
+                    bullet.setRotate(-90);
+                    path = new Line(shotEvent.getStart().getX() * coefficient + coefficient * 0.5,
+                            shotEvent.getStart().getY() * coefficient - coefficient * 0.25,
+                            shotEvent.getFinish().getX() * coefficient + coefficient * 0.5,
+                            shotEvent.getFinish().getY() * coefficient + coefficient * 0.5);
+                    break;
+                case DOWN:
+                    logger.info("Bullet will fly down");
+                    bullet.setRotate(90);
+                    path = new Line(shotEvent.getStart().getX() * coefficient + coefficient * 0.5,
+                            shotEvent.getStart().getY() * coefficient + coefficient * 1.25,
+                            shotEvent.getFinish().getX() * coefficient + coefficient * 0.5,
+                            shotEvent.getFinish().getY() * coefficient + coefficient * 0.5);
+                    break;
+                case LEFT:
+                    bullet.setRotate(180);
+                    path = new Line(shotEvent.getStart().getX() * coefficient,
+                            shotEvent.getStart().getY() * coefficient + coefficient * 0.5,
+                            shotEvent.getFinish().getX() * coefficient + coefficient * 0.5,
+                            shotEvent.getFinish().getY() * coefficient + coefficient * 0.5);
+                    break;
+                case RIGHT:
+                    logger.info("Bullet will fly right");
+                    path = new Line(shotEvent.getStart().getX() * coefficient + coefficient,
+                            shotEvent.getStart().getY() * coefficient + coefficient * 0.5,
+                            shotEvent.getFinish().getX() * coefficient + coefficient * 0.5,
+                            shotEvent.getFinish().getY() * coefficient + coefficient * 0.5);
+                    break;
+            }
+            PathTransition pathTransition = new PathTransition(Duration.seconds(1), path, bullet);
+            logger.info("Animation(shot) is started");
+            pathTransition.play();
+            pathTransition.setOnFinished((w) -> {
+                logger.info("Animation(shot) is finished");
+                bullet.setVisible(false);
+                bullet.setRotate(0);
+            });
+            logger.info("Process ShotEvent is finished.");
         }
-        PathTransition pathTransition = new PathTransition(Duration.seconds(1), path, bullet);
-        logger.info("Animation(shot) is started");
-        pathTransition.play();
-        pathTransition.setOnFinished((w) -> {
-            logger.info("Animation(shot) is finished");
-            bullet.setVisible(false);
-        });
-        logger.info("Process ShotEvent is finished.");
     }
 
     public void pressMenu() {
