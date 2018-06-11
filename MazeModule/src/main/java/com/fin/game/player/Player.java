@@ -8,10 +8,11 @@ import java.util.Objects;
 public class Player implements Serializable, Position {
     private int x;
     private int y;
+
     private Backpack backpack;
+
     private Cover stepList;
     private int id;
-
     public Player(int x, int y, int size, int id) {
         this.x = x;
         this.y = y;
@@ -64,6 +65,10 @@ public class Player implements Serializable, Position {
 
             }
         };
+    }
+
+    public Backpack getBackpack() {
+        return backpack;
     }
 
     public void add(Item item) {

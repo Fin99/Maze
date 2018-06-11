@@ -4,6 +4,7 @@ import com.fin.connects.ConnectObserver;
 import com.fin.connects.event.ServerEvent;
 import com.fin.game.cover.Cover;
 import com.fin.game.maze.Maze;
+import com.fin.game.player.Backpack;
 import com.fin.game.player.Item;
 import com.fin.game.player.Player;
 import com.fin.maze.gameEvent.*;
@@ -20,8 +21,9 @@ public class GameListenerImpl<T> implements GameListener<ServerEvent> {
 
     private Cover cover;
     private List<Player> players;
-    private Player ourPlayer;
-
+    private Backpack ourBackpack;
+    private boolean keyInMaze;
+    private boolean gunInMaze;
 
     //process message from server
     @Override
@@ -30,7 +32,10 @@ public class GameListenerImpl<T> implements GameListener<ServerEvent> {
         //full update game
         if (serverEvent.getMessage().getType() != null && serverEvent.getMessage().getType().equals("Resize")) {
             logger.info("Start resize maze");
-            saveStatement(serverEvent.getMessage().getMaze().getCover(), serverEvent.getMessage().getMaze().getPlayers(), serverEvent.getMessage().getMaze().getFirstPlayer());
+            saveStatement(serverEvent.getMessage().getMaze().getCover(), serverEvent.getMessage().getMaze().getPlayers(),
+                    serverEvent.getMessage().getMaze().getFirstPlayer().getBackpack(),
+                    containsItem(serverEvent.getMessage().getMaze().getItems(), "Key"),
+                    containsItem(serverEvent.getMessage().getMaze().getItems(), "Gun"));
             logger.info("Process resize maze. Chapter 1: creating and processing ResizeEvent, MazeEvent, Players Event");
             MazeObserver.processResizeEvent(new ResizeEvent(serverEvent.getMessage().getMaze().getSize()));
             MazeObserver.processMazeEvent(new MazeEvent(serverEvent.getMessage().getMaze().getCover()));
@@ -78,7 +83,10 @@ public class GameListenerImpl<T> implements GameListener<ServerEvent> {
             logger.info("Finish update players");
         }
         //update icon key and gun on playing field and in bag our player
-        if (serverEvent.getMessage().getMaze().getFirstPlayer() != null && (ourPlayer == null || !ourPlayer.equals(serverEvent.getMessage().getMaze().getFirstPlayer()))) {
+        if (serverEvent.getMessage().getMaze() != null &&
+                (ourBackpack == null || !ourBackpack.equals(serverEvent.getMessage().getMaze().getFirstPlayer().getBackpack()) ||
+                        containsItem(serverEvent.getMessage().getMaze().getItems(), "Key") != keyInMaze ||
+                        containsItem(serverEvent.getMessage().getMaze().getItems(), "Gun") != gunInMaze)) {
             logger.info("Start update inventory");
             Player player = serverEvent.getMessage().getMaze().getFirstPlayer();
             Maze maze = serverEvent.getMessage().getMaze();
@@ -115,7 +123,10 @@ public class GameListenerImpl<T> implements GameListener<ServerEvent> {
             logger.info("Finish move player");
         }
         //todo add TextEvent associated with infLabel
-        saveStatement(serverEvent.getMessage().getMaze().getCover(), serverEvent.getMessage().getMaze().getPlayers(), serverEvent.getMessage().getMaze().getFirstPlayer());
+        saveStatement(serverEvent.getMessage().getMaze().getCover(), serverEvent.getMessage().getMaze().getPlayers(),
+                serverEvent.getMessage().getMaze().getFirstPlayer().getBackpack(),
+                containsItem(serverEvent.getMessage().getMaze().getItems(), "Key"),
+                containsItem(serverEvent.getMessage().getMaze().getItems(), "Gun"));
         logger.info("Statement was update. Process ServerEvent is finished");
     }
 
@@ -142,9 +153,11 @@ public class GameListenerImpl<T> implements GameListener<ServerEvent> {
         return false;
     }
 
-    private void saveStatement(Cover cover, List<Player> players, Player ourPlayer) {
+    private void saveStatement(Cover cover, List<Player> players, Backpack ourBackpack, boolean keyInMaze, boolean gunInMaze) {
         if (cover != null) this.cover = cover;
         if (players != null) this.players = players;
-        if (ourPlayer != null) this.ourPlayer = ourPlayer;
+        if (ourBackpack != null) this.ourBackpack = ourBackpack;
+        this.keyInMaze = keyInMaze;
+        this.gunInMaze = gunInMaze;
     }
 }

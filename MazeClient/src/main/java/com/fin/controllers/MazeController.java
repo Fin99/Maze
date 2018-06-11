@@ -171,7 +171,9 @@ public class MazeController implements Initializable,
                 anotherPlayer.setFitWidth(coefficient);
                 anotherPlayer.setX(p.getX() * coefficient);
                 anotherPlayer.setY(p.getY() * coefficient);
+                anotherPlayer.setVisible(true);
                 anotherPlayers.put(p, anotherPlayer);
+                root.getChildren().add(anotherPlayer);
             }
         }
         logger.info("Players redrawn. Process PlayersEvent is finished");
