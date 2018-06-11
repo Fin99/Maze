@@ -16,8 +16,10 @@ public class ServerMessage implements Serializable {
     private final Direction direction;
     private final Position startPosition;
     private final Position finishPosition;
+    private final Position keyInMazePosition;
+    private final Position gunInMazePosition;
 
-    public ServerMessage(String type, Maze maze, Boolean move, Player player, Direction direction, Position startPosition, Position finishPosition) {
+    public ServerMessage(String type, Maze maze, Boolean move, Player player, Direction direction, Position startPosition, Position finishPosition, Position keyInMazePosition, Position gunInMazePosition) {
         this.type = type;
         this.maze = maze;
         this.move = move;
@@ -26,6 +28,8 @@ public class ServerMessage implements Serializable {
 
         this.startPosition = startPosition;
         this.finishPosition = finishPosition;
+        this.keyInMazePosition = keyInMazePosition;
+        this.gunInMazePosition = gunInMazePosition;
     }
 
     public String getType() {
@@ -54,5 +58,13 @@ public class ServerMessage implements Serializable {
 
     public Player getPlayer() {
         return player;
+    }
+
+    public Position getKeyInMazePosition() {
+        return keyInMazePosition;
+    }
+
+    public Position getGunInMazePosition() {
+        return gunInMazePosition;
     }
 }

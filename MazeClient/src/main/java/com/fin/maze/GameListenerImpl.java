@@ -41,7 +41,7 @@ public class GameListenerImpl<T> implements GameListener<ServerEvent> {
             Maze maze = serverEvent.getMessage().getMaze();
             MazeObserver.processInventoryEvent(new InventoryEvent(
                     player.contains("Key"), player.contains("Gun"),
-                    containsItem(maze.getItems(), "Key"), containsItem(maze.getItems(), "Gun")));
+                    containsItem(maze.getItems(), "Key"), containsItem(maze.getItems(), "Gun"), serverEvent.getMessage().getKeyInMazePosition(), serverEvent.getMessage().getGunInMazePosition()));
             logger.info("Process resize maze. Chapter 2 is finished.");
             logger.info("Process resize maze. Chapter 3: creating TurnEvent");
             logger.info("Start creating TurnEvent");
@@ -73,7 +73,7 @@ public class GameListenerImpl<T> implements GameListener<ServerEvent> {
             Maze maze = serverEvent.getMessage().getMaze();
             MazeObserver.processInventoryEvent(new InventoryEvent(
                     player.contains("Key"), player.contains("Gun"),
-                    containsItem(maze.getItems(), "Key"), containsItem(maze.getItems(), "Gun")));
+                    containsItem(maze.getItems(), "Key"), containsItem(maze.getItems(), "Gun"), serverEvent.getMessage().getKeyInMazePosition(), serverEvent.getMessage().getGunInMazePosition()));
             logger.info("Finish update inventory");
         }
         //notify what our player turn right now

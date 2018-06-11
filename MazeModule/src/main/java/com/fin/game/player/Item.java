@@ -13,6 +13,33 @@ public class Item implements Serializable, Position {
         this.y = y;
     }
 
+    public Position getPosition(){
+        return new Position() {
+            int x = Item.this.x;
+            int y = Item.this.y;
+
+            @Override
+            public int getX() {
+                return x;
+            }
+
+            @Override
+            public void setX(int x) {
+
+            }
+
+            @Override
+            public int getY() {
+                return y;
+            }
+
+            @Override
+            public void setY(int y) {
+
+            }
+        };
+    }
+
     public String getName() {
         return name;
     }

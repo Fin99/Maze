@@ -3,6 +3,7 @@ package com.fin;
 import com.fin.game.cover.Direction;
 import com.fin.game.maze.Maze;
 import com.fin.game.maze.MazeImplDefault;
+import com.fin.game.player.Item;
 import com.fin.game.player.Player;
 import com.fin.game.player.Position;
 import org.apache.logging.log4j.LogManager;
@@ -202,7 +203,9 @@ public class ClientThread extends Thread implements Serializable {
                     ServerMessage message = new ServerMessage("Resize",
                             start,
                             server.playerMoveNow.equals(client),
-                            null, null, null, null);
+                            null, null, null, null,
+                            positionItem(server.maze.go(null, idPlayer).getItems(), "Key"),
+                            positionItem(server.maze.go(null, idPlayer).getItems(), "Gun"));
                     writeToByteArray(os, message);
                     notifyAboutAddedNewPlayer();
                     logger.info("Connect is finished");
@@ -221,7 +224,9 @@ public class ClientThread extends Thread implements Serializable {
                 DataOutputStream os = new DataOutputStream(player.getOutputStream());
                 Integer playerID = server.playersId.get(server.playersSocket.indexOf(player));
                 ServerMessage serverMessage = new ServerMessage("New player", server.maze.go(null, playerID), server.playerMoveNow.equals(player),
-                        null, null, null, null);
+                        null, null, null, null,
+                        positionItem(server.maze.go(null, playerID).getItems(), "Key"),
+                        positionItem(server.maze.go(null, playerID).getItems(), "Gun"));
                 writeToByteArray(os, serverMessage);
             }
         } catch (IOException e) {
@@ -247,7 +252,9 @@ public class ClientThread extends Thread implements Serializable {
                         server.playerMoveNow.equals(player),
                         playerInMaze,
                         direction,
-                        startPosition, finishPosition);
+                        startPosition, finishPosition,
+                        positionItem(server.maze.go(null, playerID).getItems(), "Key"),
+                        positionItem(server.maze.go(null, playerID).getItems(), "Gun"));
                 writeToByteArray(os, serverMessage);
             }
         } catch (IOException e) {
@@ -273,7 +280,9 @@ public class ClientThread extends Thread implements Serializable {
                         server.playerMoveNow.equals(player),
                         playerInMaze,
                         direction,
-                        startPosition, finishPosition);
+                        startPosition, finishPosition,
+                        positionItem(server.maze.go(null, playerID).getItems(), "Key"),
+                        positionItem(server.maze.go(null, playerID).getItems(), "Gun"));
                 writeToByteArray(os, serverMessage);
             }
         } catch (IOException e) {
@@ -297,6 +306,15 @@ public class ClientThread extends Thread implements Serializable {
         logger.info("Player(" + client.getInetAddress().getHostAddress() + ":" + client.getPort() + ") turn right now");
     }
 
+    //check contains item with that name in this list
+    private Position positionItem(List<Item> items, String name) {
+        for (Item i : items) {
+            if (i.getName().equals(name)) {
+                return i.getPosition();
+            }
+        }
+        return null;
+    }
 
     public void writeToByteArray(DataOutputStream stream, Object element) throws IOException {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();

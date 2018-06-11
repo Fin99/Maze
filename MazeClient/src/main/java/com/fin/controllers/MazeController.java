@@ -83,6 +83,16 @@ public class MazeController implements Initializable,
                 + ". KeyInMaze = " + inventoryEvent.getKeyInMaze() +
                 ". Gun = " + inventoryEvent.getGun() +
                 ". Key = " + inventoryEvent.getKey());
+        if(inventoryEvent.getKeyInMazePosition()!=null){
+            keyInMaze.setX(inventoryEvent.getKeyInMazePosition().getX()*coefficient);
+            keyInMaze.setY(inventoryEvent.getKeyInMazePosition().getY()*coefficient);
+            logger.info("Key position changed. X:"+inventoryEvent.getKeyInMazePosition().getX()+" Y:"+inventoryEvent.getKeyInMazePosition().getY()+"");
+        }
+        if(inventoryEvent.getGunInMazePosition()!=null){
+            gunInMaze.setX(inventoryEvent.getGunInMazePosition().getX()*coefficient);
+            gunInMaze.setY(inventoryEvent.getGunInMazePosition().getY()*coefficient);
+            logger.info("Gun position changed. X:"+inventoryEvent.getGunInMazePosition().getX()+" Y:"+inventoryEvent.getGunInMazePosition().getY()+"");
+        }
         gunInMaze.setVisible(inventoryEvent.getGunInMaze());
         keyInMaze.setVisible(inventoryEvent.getKeyInMaze());
         gun.setVisible(inventoryEvent.getGun());
@@ -142,6 +152,8 @@ public class MazeController implements Initializable,
         //add new player and part old player
         for (Player p : playersEvent.getPlayers()) {
             if (p.getId() == -1) {
+                monster.setX(p.getX()*coefficient);
+                monster.setY(p.getY()*coefficient);
                 anotherPlayers.put(p, monster);
                 monster.setVisible(true);
             } else if (p.getId() != ourPlayerID) {
@@ -200,8 +212,6 @@ public class MazeController implements Initializable,
             pathTransition.play();
             pathTransition.setOnFinished((w) -> {
                 logger.info("Animation(move) is finished");
-                player.setX(moveEvent.getFinish().getX() * coefficient);
-                player.setY(moveEvent.getFinish().getY() * coefficient);
             });
         }
         logger.info("Process MoveEvent is finished");
