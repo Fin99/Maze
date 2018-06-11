@@ -64,4 +64,10 @@ public class MazeObserver {
         mazeController.handle(event);
         logger.info("Process ShotEvent is finished");
     }
+
+    public static synchronized void processEndGameEvent(EndGameEvent event){
+        logger.info("Process EndGameEvent is started");
+        mazeController.handle(event);
+        logger.info("Process EndGameEvent is finished");
+    }
 }

@@ -8,9 +8,13 @@ import com.fin.maze.gameEvent.*;
 import com.fin.maze.gameListeners.*;
 import javafx.animation.FadeTransition;
 import javafx.animation.PathTransition;
+import javafx.concurrent.Service;
+import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
@@ -22,11 +26,13 @@ import org.apache.logging.log4j.Logger;
 
 import java.net.URL;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.ResourceBundle;
+import java.util.concurrent.TimeUnit;
 
 public class MazeController implements Initializable,
-        InventoryListener, MazeListener, PlayersListener, MoveListener, ShotListener, ResizeListener {
+        InventoryListener, MazeListener, PlayersListener, MoveListener, ShotListener, ResizeListener, EndGameListener {
 
     //logger
     private final Logger logger = LogManager.getRootLogger();
@@ -303,6 +309,47 @@ public class MazeController implements Initializable,
             });
             logger.info("Process ShotEvent is finished.");
         }
+    }
+
+    @Override
+    public void handle(EndGameEvent event) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setHeaderText(null);
+        alert.setOnShown((w) -> {
+            Service service = new Service<Void>() {
+                @Override
+                protected Task<Void> createTask() {
+                    return new Task<Void>() {
+                        @Override
+                        protected Void call() {
+                            logger.info("User is reading message...");
+                            try {
+                                TimeUnit.SECONDS.sleep(2);
+                            } catch (InterruptedException e) {
+                                logger.error("Exception while waiting user");
+                                e.printStackTrace();
+                            }
+                            logger.info("User read");
+                            return null;
+                        }
+                    };
+                }
+            };
+            service.setOnSucceeded((w1) -> {
+                logger.info("Alert closing....");
+                alert.close();
+                logger.info("Alert close");
+            });
+            service.start();
+        });
+        if (event.isWinner()) {
+            alert.setTitle("Победа!");
+            alert.setContentText("Вы победили!");
+        } else {
+            alert.setTitle("Поражение");
+            alert.setContentText("Вы проиграли...");
+        }
+        alert.showAndWait();
     }
 
     public void pressMenu() {

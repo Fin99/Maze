@@ -54,6 +54,16 @@ public class GameListenerImpl<T> implements GameListener<ServerEvent> {
             logger.info("Finish resize maze");
             return;
         }
+        //win or lose checked
+        if (serverEvent.getMessage().getType() != null && (serverEvent.getMessage().getType().equals("Win") || serverEvent.getMessage().getType().equals("Lose"))) {
+            if (serverEvent.getMessage().getType().equals("Win")) {
+                logger.info("Player is winner");
+                MazeObserver.processEndGameEvent(new EndGameEvent(true));
+            } else {
+                logger.info("Player is loser");
+                MazeObserver.processEndGameEvent(new EndGameEvent(false));
+            }
+        }
         //update playing field
         if (serverEvent.getMessage().getMaze().getCover() != null && (cover == null || !cover.equals(serverEvent.getMessage().getMaze().getCover()))) {
             logger.info("Start update maze");

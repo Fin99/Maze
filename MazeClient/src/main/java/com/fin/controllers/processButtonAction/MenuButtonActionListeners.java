@@ -55,6 +55,7 @@ public class MenuButtonActionListeners implements EventHandler<ActionEvent> {
     @Override
     public void handle(ActionEvent event) {
         logger.info("Menu(button) pressed");
+        menuStage.setScene(menu);
         menuStage.showAndWait();
     }
 }

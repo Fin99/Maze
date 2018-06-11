@@ -103,7 +103,7 @@ public class ClientThread extends Thread implements Serializable {
                 logger.info("Player(" + idPlayer + ") made a move into the place(" + finishPosition.getX() + ":" + finishPosition.getY() + ") from the place(" + startPosition.getX() + ":" + startPosition.getY() + ")");
             }
             if (player.getX() == server.mazeSize - 1 && player.getY() == server.mazeSize - 1 && player.contains("Key")) {
-                logger.info("Player is winner");
+                logger.info("Player(" + idPlayer + ") is winner");
                 win();
             }
             nextPlayer();
@@ -112,28 +112,22 @@ public class ClientThread extends Thread implements Serializable {
         }
     }
 
-    //todo
     private void win() {
-        synchronized (server) {
-            Socket disconnect = null;
-            try {
-                for (Socket player : server.playersSocket) {
-                    disconnect = player;
-                    DataOutputStream os = new DataOutputStream(player.getOutputStream());
-                    writeToByteArray(os, null);
-                    if (server.playersId.get(server.playersSocket.indexOf(player)) == idPlayer) {
-                        writeToByteArray(os, true);
-                    } else {
-                        writeToByteArray(os, false);
-                    }
-                    writeToByteArray(os, null);
-                    writeToByteArray(os, null);
-
-                }
-            } catch (IOException e) {
-                System.err.println("Player disconnected (" + disconnect.getInetAddress() + ":" + disconnect.getPort() + ")");
+        logger.info("Notify all players about win or lose");
+        Socket disconnect = null;
+        try {
+            for (Socket player : server.playersSocket) {
+                disconnect = player;
+                DataOutputStream os = new DataOutputStream(player.getOutputStream());
+                Integer playerID = server.playersId.get(server.playersSocket.indexOf(player));
+                ServerMessage serverMessage = new ServerMessage(playerID==idPlayer?"Win":"Lose",
+                        null, null, null, null, null, null, null, null);
+                writeToByteArray(os, serverMessage);
             }
+        } catch (IOException e) {
+            logger.error("Player disconnected (" + disconnect.getInetAddress() + ":" + disconnect.getPort() + ")");
         }
+        logger.info("All players is notified");
     }
 
     private void shot(Direction direction) {
