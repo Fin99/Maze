@@ -5,10 +5,15 @@ import com.fin.connects.database.event.ResponseRegistrationEvent;
 import com.fin.connects.server.event.ServerEvent;
 import com.fin.controllers.MazeController;
 import com.fin.maze.gameEvent.*;
+import com.fin.maze.localEvent.LocalEvent;
+import com.fin.maze.localHandlers.LocalHandler;
 import com.fin.maze.loginListener.ResponseAuthorizationEventHandler;
 import com.fin.maze.loginListener.ResponseRegistrationEventHandler;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class MazeObserver {
     //logger
@@ -18,9 +23,15 @@ public class MazeObserver {
     private static MazeController mazeController;
     private static ResponseAuthorizationEventHandler authorizationEventHandler;
     private static ResponseRegistrationEventHandler registrationEventHandler;
+    private static List<LocalHandler> localHandlers;
+
+    static {
+        localHandlers = new ArrayList<>();
+    }
 
     public static void addMazeListener(MazeController controller) {
         mazeController = controller;
+        localHandlers.add(controller);
         logger.info("MazeListener was initialized");
     }
 
@@ -39,13 +50,26 @@ public class MazeObserver {
         logger.info("ResponseRegistrationEventHandler was initialized");
     }
 
-    public static synchronized void processResponseAuthorizationEvent(ResponseAuthorizationEvent event){
+    public static void addLocaleHandler(LocalHandler handler) {
+        localHandlers.add(handler);
+        logger.info("Added new LocalHandler");
+    }
+
+    public static synchronized void processResponseAuthorizationEvent(ResponseAuthorizationEvent event) {
         logger.info("Process ResponseAuthorizationEvent is started");
         authorizationEventHandler.handle(event);
         logger.info("Process ResponseAuthorizationEvent is finished");
     }
 
-    public static synchronized void processResponseRegistrationEvent(ResponseRegistrationEvent event){
+    public static strictfp void processLocaleEvent(LocalEvent event) {
+        logger.info("Process ResponseAuthorizationEvent is started");
+        for (LocalHandler lH : localHandlers) {
+            lH.handle(event);
+        }
+        logger.info("Process ResponseAuthorizationEvent is finished");
+    }
+
+    public static synchronized void processResponseRegistrationEvent(ResponseRegistrationEvent event) {
         logger.info("Process ResponseRegistrationEvent is started");
         registrationEventHandler.handle(event);
         logger.info("Process ResponseRegistrationEvent is finished");
@@ -93,7 +117,7 @@ public class MazeObserver {
         logger.info("Process ShotEvent is finished");
     }
 
-    public static synchronized void processEndGameEvent(EndGameEvent event){
+    public static synchronized void processEndGameEvent(EndGameEvent event) {
         logger.info("Process EndGameEvent is started");
         mazeController.handle(event);
         logger.info("Process EndGameEvent is finished");

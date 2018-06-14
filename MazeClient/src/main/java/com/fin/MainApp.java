@@ -18,6 +18,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
+import java.util.ResourceBundle;
 
 public class MainApp extends Application {
     //logger
@@ -25,11 +26,16 @@ public class MainApp extends Application {
     //
     private Stage primaryStage;
     private MazeController rootLayoutController;
+    private ResourceBundle resourceBundle;
+
+    {
+        resourceBundle = ResourceBundle.getBundle("strings", new Windows1251Control());
+    }
 
     @Override
     public void start(Stage primaryStage) throws Exception {
         this.primaryStage = primaryStage;
-        primaryStage.setTitle("Maze");
+        primaryStage.setTitle(resourceBundle.getString("maze"));
         primaryStage.setMaximized(true);
         primaryStage.setOnShown((w) -> {
             try {
@@ -38,14 +44,13 @@ public class MainApp extends Application {
                 loader.setLocation(MainApp.class.getResource("/layouts/authorization.fxml"));
                 AnchorPane rootLayout = loader.load();
                 Scene scene = new Scene(rootLayout);
-                AuthorizationController authorizationController = ((AuthorizationController)loader.getController());
+                AuthorizationController authorizationController = ((AuthorizationController) loader.getController());
                 authorizationController.init(stage, scene);
                 MazeObserver.addResponseAuthorizationEventHandler(authorizationController);
                 logger.info("File (layouts/authorization.fxml) was loading");
                 stage.setOnCloseRequest((event -> {
                     System.exit(0);
                 }));
-                stage.setTitle("Authorization");
                 stage.setScene(scene);
                 stage.initOwner(primaryStage);
                 stage.initModality(Modality.WINDOW_MODAL);

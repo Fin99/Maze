@@ -1,8 +1,12 @@
 package com.fin.controllers;
 
+import com.fin.Windows1251Control;
 import com.fin.connects.server.Connect;
 import com.fin.connects.server.ConnectServerObserver;
 import com.fin.connects.server.event.ReplacementConnectEvent;
+import com.fin.maze.MazeObserver;
+import com.fin.maze.localEvent.LocalEvent;
+import com.fin.maze.localHandlers.LocalHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
@@ -18,7 +22,7 @@ import java.net.Socket;
 import java.net.URL;
 import java.util.ResourceBundle;
 
-public class SearchController implements Initializable {
+public class SearchController implements Initializable, LocalHandler {
     //logger
     private final Logger logger = LogManager.getRootLogger();
     //
@@ -30,10 +34,17 @@ public class SearchController implements Initializable {
     TextField ipServer;
     @FXML
     Button search;
+    private ResourceBundle resourceBundle;
+
+    {
+        MazeObserver.addLocaleHandler(this);
+        resourceBundle = ResourceBundle.getBundle("strings", new Windows1251Control());
+    }
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-
+        label.setText(resourceBundle.getString("change_address_server"));
+        search.setText(resourceBundle.getString("connect"));
     }
 
     public void setMenuStage(AnchorPane menu, Stage menuStage) {
@@ -67,7 +78,7 @@ public class SearchController implements Initializable {
                 if (ip != null && !ip.equals("")) {
                     String[] ipAndPort = ip.split(":");
                     Socket socket = new Socket(ipAndPort[0], Integer.parseInt(ipAndPort[1]));
-                    logger.info("Socket("+ip+") was initialized");
+                    logger.info("Socket(" + ip + ") was initialized");
                     logger.info("ReplacementConnectEvent was creating");
                     ConnectServerObserver.processReplacementConnectEvent(new ReplacementConnectEvent(new Connect(socket)));
                     menuStage.close();
@@ -80,5 +91,12 @@ public class SearchController implements Initializable {
             logger.info("Process SearchAction is finished");
         });
         logger.info("New listener for search(Button) was installed");
+    }
+
+    @Override
+    public void handle(LocalEvent localEvent) {
+        resourceBundle = ResourceBundle.getBundle("strings", localEvent.getLocale(), new Windows1251Control());
+        label.setText(resourceBundle.getString("change_address_server"));
+        search.setText(resourceBundle.getString("connect"));
     }
 }

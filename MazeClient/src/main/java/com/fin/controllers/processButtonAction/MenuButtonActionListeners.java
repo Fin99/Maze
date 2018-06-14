@@ -1,6 +1,10 @@
 package com.fin.controllers.processButtonAction;
 
+import com.fin.Windows1251Control;
 import com.fin.controllers.MenuController;
+import com.fin.maze.MazeObserver;
+import com.fin.maze.localEvent.LocalEvent;
+import com.fin.maze.localHandlers.LocalHandler;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
@@ -13,13 +17,20 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
+import java.util.ResourceBundle;
 
-public class MenuButtonActionListeners implements EventHandler<ActionEvent> {
+public class MenuButtonActionListeners implements EventHandler<ActionEvent>, LocalHandler {
     //logger
     private final Logger logger = LogManager.getRootLogger();
     //
     private Stage menuStage;
     private Scene menu;
+    private ResourceBundle resourceBundle;
+
+    {
+        MazeObserver.addLocaleHandler(this);
+        resourceBundle = ResourceBundle.getBundle("strings", new Windows1251Control());
+    }
 
     public MenuButtonActionListeners(Stage rootStage) {
         logger.info("Create new MenuButtonActionListener");
@@ -39,7 +50,7 @@ public class MenuButtonActionListeners implements EventHandler<ActionEvent> {
                 menuStage.setScene(menu);
                 menuStage.close();
             });
-            menuStage.setTitle("Menu");
+            menuStage.setTitle(resourceBundle.getString("menu"));
             menuStage.setScene(menu);
             menuStage.initModality(Modality.WINDOW_MODAL);
             menuStage.initOwner(rootStage);
@@ -57,5 +68,11 @@ public class MenuButtonActionListeners implements EventHandler<ActionEvent> {
         logger.info("Menu(button) pressed");
         menuStage.setScene(menu);
         menuStage.showAndWait();
+    }
+
+    @Override
+    public void handle(LocalEvent event) {
+        resourceBundle = ResourceBundle.getBundle("strings", event.getLocale(), new Windows1251Control());
+        menuStage.setTitle(resourceBundle.getString("menu"));
     }
 }

@@ -1,11 +1,14 @@
 package com.fin.controllers;
 
+import com.fin.Windows1251Control;
 import com.fin.controllers.processButtonAction.MenuButtonActionListeners;
 import com.fin.game.cover.Direction;
 import com.fin.game.cover.Field;
 import com.fin.game.player.Player;
 import com.fin.maze.gameEvent.*;
 import com.fin.maze.gameListeners.*;
+import com.fin.maze.localEvent.LocalEvent;
+import com.fin.maze.localHandlers.LocalHandler;
 import javafx.animation.FadeTransition;
 import javafx.animation.PathTransition;
 import javafx.concurrent.Service;
@@ -14,7 +17,6 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
-import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
@@ -26,13 +28,13 @@ import org.apache.logging.log4j.Logger;
 
 import java.net.URL;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.concurrent.TimeUnit;
 
 public class MazeController implements Initializable,
-        InventoryListener, MazeListener, PlayersListener, MoveListener, ShotListener, ResizeListener, EndGameListener {
+        InventoryListener, MazeListener, PlayersListener, MoveListener, ShotListener, ResizeListener, EndGameListener,
+        LocalHandler {
 
     //logger
     private final Logger logger = LogManager.getRootLogger();
@@ -61,20 +63,26 @@ public class MazeController implements Initializable,
     @FXML
     Label infLabel;
 
+    private Stage stage;
+
     private Map<Player, ImageView> anotherPlayers;
     private int ourPlayerID;
     private double coefficient;
     private Line divisionLine;
+    private ResourceBundle resourceBundle;
 
     {
+        resourceBundle = ResourceBundle.getBundle("strings", new Windows1251Control());
         anotherPlayers = new HashMap<>();
     }
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+        menu.setText(resourceBundle.getString("menu"));
     }
 
     public void init(Stage root) {
+        stage = root;
         logger.info("Start MazeController.init()");
         menu.setOnAction(new MenuButtonActionListeners(root));
         logger.info("New listener for menu(Button) was installed");
@@ -355,6 +363,12 @@ public class MazeController implements Initializable,
             alert.setContentText("Вы проиграли...");
         }
         alert.showAndWait();
+    }
+
+    @Override
+    public void handle(LocalEvent localEvent) {
+        resourceBundle = ResourceBundle.getBundle("strings", localEvent.getLocale(), new Windows1251Control());
+        menu.setText(resourceBundle.getString("menu"));
     }
 
     public void pressMenu() {
