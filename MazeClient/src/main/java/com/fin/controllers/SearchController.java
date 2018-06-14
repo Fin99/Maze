@@ -1,8 +1,8 @@
 package com.fin.controllers;
 
-import com.fin.connects.Connect;
-import com.fin.connects.ConnectObserver;
-import com.fin.connects.event.ReplacementConnectEvent;
+import com.fin.connects.server.Connect;
+import com.fin.connects.server.ConnectServerObserver;
+import com.fin.connects.server.event.ReplacementConnectEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
@@ -69,7 +69,7 @@ public class SearchController implements Initializable {
                     Socket socket = new Socket(ipAndPort[0], Integer.parseInt(ipAndPort[1]));
                     logger.info("Socket("+ip+") was initialized");
                     logger.info("ReplacementConnectEvent was creating");
-                    ConnectObserver.processReplacementConnectEvent(new ReplacementConnectEvent(new Connect(socket)));
+                    ConnectServerObserver.processReplacementConnectEvent(new ReplacementConnectEvent(new Connect(socket)));
                     menuStage.close();
                     logger.info("MenuStage is closed");
                 }

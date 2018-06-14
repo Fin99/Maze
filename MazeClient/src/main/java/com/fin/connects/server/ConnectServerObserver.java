@@ -1,7 +1,7 @@
-package com.fin.connects;
+package com.fin.connects.server;
 
-import com.fin.connects.event.ReplacementConnectEvent;
-import com.fin.connects.event.RestartGameEvent;
+import com.fin.connects.server.event.ReplacementConnectEvent;
+import com.fin.connects.server.event.RestartGameEvent;
 import com.fin.turn.TurnEvent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -9,7 +9,7 @@ import org.apache.logging.log4j.Logger;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ConnectObserver {
+public class ConnectServerObserver {
     //logger
     private static final Logger logger = LogManager.getRootLogger();
     //
@@ -20,7 +20,7 @@ public class ConnectObserver {
     }
     
     public static void addSendTurnPlayer(SendTurnPlayer sendTurnPlayer){
-        ConnectObserver.sendTurnPlayer = sendTurnPlayer;
+        ConnectServerObserver.sendTurnPlayer = sendTurnPlayer;
         listeners.add(sendTurnPlayer);
         logger.info("SendTurnPlayer is init");
     }

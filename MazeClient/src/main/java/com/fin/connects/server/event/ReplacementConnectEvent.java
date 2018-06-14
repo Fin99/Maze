@@ -1,7 +1,7 @@
-package com.fin.connects.event;
+package com.fin.connects.server.event;
 
 import com.fin.Event;
-import com.fin.connects.Connect;
+import com.fin.connects.server.Connect;
 
 public class ReplacementConnectEvent implements Event {
     private final Connect connect;

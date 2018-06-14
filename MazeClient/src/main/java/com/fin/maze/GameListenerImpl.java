@@ -1,7 +1,7 @@
 package com.fin.maze;
 
-import com.fin.connects.ConnectObserver;
-import com.fin.connects.event.ServerEvent;
+import com.fin.connects.server.ConnectServerObserver;
+import com.fin.connects.server.event.ServerEvent;
 import com.fin.game.cover.Cover;
 import com.fin.game.maze.Maze;
 import com.fin.game.player.Backpack;
@@ -53,7 +53,7 @@ public class GameListenerImpl<T> implements GameListener<ServerEvent> {
             if (serverEvent.getMessage().getMove() == null) {
                 logger.fatal("ServerMessage.isMove() == null");
             }
-            ConnectObserver.processTurnEvent(new TurnEvent(serverEvent.getMessage().getMove()));
+            ConnectServerObserver.processTurnEvent(new TurnEvent(serverEvent.getMessage().getMove()));
             logger.info("TurnEvent(" + serverEvent.getMessage().getMove() + ") was creating");
             logger.info("Process resize maze. Chapter 3 is finished");
             logger.info("Finish resize maze");
@@ -101,7 +101,7 @@ public class GameListenerImpl<T> implements GameListener<ServerEvent> {
             if (serverEvent.getMessage().getMove() == null) {
                 logger.fatal("ServerMessage.isMove() == null");
             }
-            ConnectObserver.processTurnEvent(new TurnEvent(serverEvent.getMessage().getMove()));
+            ConnectServerObserver.processTurnEvent(new TurnEvent(serverEvent.getMessage().getMove()));
             logger.info("TurnEvent(" + serverEvent.getMessage().getMove() + ") was creating");
         }
         //turn on animation shot

@@ -79,7 +79,7 @@ public class MazeController implements Initializable,
         menu.setOnAction(new MenuButtonActionListeners(root));
         logger.info("New listener for menu(Button) was installed");
         resizeImageView(root);
-        pressMenu();
+        //pressMenu();
     }
 
     @Override

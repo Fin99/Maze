@@ -1,8 +1,8 @@
-package com.fin.connects;
+package com.fin.connects.server;
 
 import com.fin.ServerMessage;
-import com.fin.connects.event.ReplacementConnectEvent;
-import com.fin.connects.event.ServerEvent;
+import com.fin.connects.server.event.ReplacementConnectEvent;
+import com.fin.connects.server.event.ServerEvent;
 import com.fin.maze.MazeObserver;
 import javafx.concurrent.Task;
 import javafx.concurrent.WorkerStateEvent;

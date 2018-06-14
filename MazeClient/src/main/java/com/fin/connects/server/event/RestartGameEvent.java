@@ -1,4 +1,4 @@
-package com.fin.connects.event;
+package com.fin.connects.server.event;
 
 import com.fin.Event;
 

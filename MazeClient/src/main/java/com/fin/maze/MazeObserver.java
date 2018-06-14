@@ -1,8 +1,12 @@
 package com.fin.maze;
 
-import com.fin.connects.event.ServerEvent;
+import com.fin.connects.database.event.ResponseAuthorizationEvent;
+import com.fin.connects.database.event.ResponseRegistrationEvent;
+import com.fin.connects.server.event.ServerEvent;
 import com.fin.controllers.MazeController;
 import com.fin.maze.gameEvent.*;
+import com.fin.maze.loginListener.ResponseAuthorizationEventHandler;
+import com.fin.maze.loginListener.ResponseRegistrationEventHandler;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -12,6 +16,8 @@ public class MazeObserver {
     //
     private static GameListener<ServerEvent> gameListener;
     private static MazeController mazeController;
+    private static ResponseAuthorizationEventHandler authorizationEventHandler;
+    private static ResponseRegistrationEventHandler registrationEventHandler;
 
     public static void addMazeListener(MazeController controller) {
         mazeController = controller;
@@ -21,6 +27,28 @@ public class MazeObserver {
     public static void addGameListener(GameListener<ServerEvent> gameListener) {
         MazeObserver.gameListener = gameListener;
         logger.info("GameListener was initialized");
+    }
+
+    public static void addResponseAuthorizationEventHandler(ResponseAuthorizationEventHandler handler) {
+        MazeObserver.authorizationEventHandler = handler;
+        logger.info("ResponseAuthorizationEventHandler was initialized");
+    }
+
+    public static void addResponseRegistrationEventHandler(ResponseRegistrationEventHandler handler) {
+        MazeObserver.registrationEventHandler = handler;
+        logger.info("ResponseRegistrationEventHandler was initialized");
+    }
+
+    public static synchronized void processResponseAuthorizationEvent(ResponseAuthorizationEvent event){
+        logger.info("Process ResponseAuthorizationEvent is started");
+        authorizationEventHandler.handle(event);
+        logger.info("Process ResponseAuthorizationEvent is finished");
+    }
+
+    public static synchronized void processResponseRegistrationEvent(ResponseRegistrationEvent event){
+        logger.info("Process ResponseRegistrationEvent is started");
+        registrationEventHandler.handle(event);
+        logger.info("Process ResponseRegistrationEvent is finished");
     }
 
     public static synchronized void processServerEvent(ServerEvent event) {

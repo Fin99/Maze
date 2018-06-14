@@ -1,8 +1,8 @@
-package com.fin.connects;
+package com.fin.connects.server;
 
 import com.fin.ClientMessage;
-import com.fin.connects.event.ReplacementConnectEvent;
-import com.fin.connects.event.RestartGameEvent;
+import com.fin.connects.server.event.ReplacementConnectEvent;
+import com.fin.connects.server.event.RestartGameEvent;
 import com.fin.game.cover.Direction;
 import com.fin.turn.TurnEvent;
 import com.fin.turn.TurnListener;
