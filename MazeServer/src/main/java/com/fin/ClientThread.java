@@ -71,6 +71,10 @@ public class ClientThread extends Thread implements Serializable {
                 logger.info("Player("+idPlayer+") voted to update game");
                 server.updateMaze.replace(client, true);
                 checkAndUpdateMaze();
+            } else if(message.getType().equals("Pass")){
+                logger.info("Player("+idPlayer+") pass his turn");
+                nextPlayer();
+                notifyAboutPassPlayers();
             }
             logger.info("Processing of message is finished");
             try {
@@ -176,6 +180,7 @@ public class ClientThread extends Thread implements Serializable {
     }
 
     //todo
+
     private void deletePlayer() {
         server.playersId.remove(idPlayer);
         server.iteratorPlayers.remove();
@@ -184,7 +189,6 @@ public class ClientThread extends Thread implements Serializable {
         //updatePlayers();
         server.maze.deletePlayer(idPlayer);
     }
-
     private void connect() throws IOException {
         logger.info("Start connect");
         while (true) {
@@ -301,6 +305,32 @@ public class ClientThread extends Thread implements Serializable {
                 DataOutputStream os = new DataOutputStream(player.getOutputStream());
                 Integer playerID = server.playersId.get(server.playersSocket.indexOf(player));
                 ServerMessage serverMessage = new ServerMessage("Resize", server.maze.go(null, playerID),
+                        server.playerMoveNow.equals(player),
+                        null, null, null, null,
+                        positionItem(server.maze.go(null, playerID).getItems(), "Key"),
+                        positionItem(server.maze.go(null, playerID).getItems(), "Gun"));
+                writeToByteArray(os, serverMessage);
+            }
+        } catch (IOException e) {
+            logger.error("Player disconnected (" + disconnect.getInetAddress() + ":" + disconnect.getPort() + ")");
+        }
+        logger.info("All players is notified");
+    }
+
+    private void notifyAboutPassPlayers() {
+        logger.info("Notify all players about pass turn player");
+        Socket disconnect = null;
+        try {
+            for (Socket player : server.playersSocket) {
+                disconnect = player;
+                DataOutputStream os = new DataOutputStream(player.getOutputStream());
+                Integer playerID = server.playersId.get(server.playersSocket.indexOf(player));
+                Player playerInMaze = null;
+                for (Player pl : server.maze.getPlayers()) {
+                    if (pl.getId() == idPlayer) playerInMaze = pl;
+                }
+                ServerMessage serverMessage = new ServerMessage("Pass",
+                        server.maze.go(null, playerID),
                         server.playerMoveNow.equals(player),
                         null, null, null, null,
                         positionItem(server.maze.go(null, playerID).getItems(), "Key"),

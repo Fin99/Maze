@@ -122,4 +122,10 @@ public class MazeObserver {
         mazeController.handle(event);
         logger.info("Process EndGameEvent is finished");
     }
+
+    public static synchronized void processTickEvent(TickEvent event) {
+        logger.info("Process TickEvent is started");
+        mazeController.handle(event);
+        logger.info("Process TickEvent is finished");
+    }
 }

@@ -34,7 +34,8 @@ import java.util.concurrent.TimeUnit;
 
 public class MazeController implements Initializable,
         InventoryListener, MazeListener, PlayersListener, MoveListener, ShotListener, ResizeListener, EndGameListener,
-        LocalHandler {
+        LocalHandler,
+        TickHandler {
 
     //logger
     private final Logger logger = LogManager.getRootLogger();
@@ -87,7 +88,6 @@ public class MazeController implements Initializable,
         menu.setOnAction(new MenuButtonActionListeners(root));
         logger.info("New listener for menu(Button) was installed");
         resizeImageView(root);
-        //pressMenu();
     }
 
     @Override
@@ -171,8 +171,8 @@ public class MazeController implements Initializable,
                 anotherPlayers.put(p, monster);
                 monster.setVisible(true);
             } else if (p.getId() == ourPlayerID) {
-                human.setX(p.getX()*coefficient);
-                human.setY(p.getY()*coefficient);
+                human.setX(p.getX() * coefficient);
+                human.setY(p.getY() * coefficient);
             } else {
                 ImageView anotherPlayer = new ImageView(MazeController.class.getResource("/images/anotherPlayer.png").toString());
                 anotherPlayer.setFitHeight(coefficient);
@@ -371,8 +371,13 @@ public class MazeController implements Initializable,
         menu.setText(resourceBundle.getString("menu"));
     }
 
-    public void pressMenu() {
-        menu.fire();
+    @Override
+    public void handle(TickEvent tickEvent) {
+        if(tickEvent.isMove()) {
+            infLabel.setText(resourceBundle.getString("inf_tick") + " " + tickEvent.getCounter());
+        } else {
+            infLabel.setText(resourceBundle.getString("it_is_not_your_turn"));
+        }
     }
 
     public void resizeImageView(Stage primaryStage) {
